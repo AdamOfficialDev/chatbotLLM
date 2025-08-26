@@ -563,9 +563,15 @@ def run_comprehensive_tests():
     test_results["Anthropic Integration"] = test_chat_endpoint_anthropic()
     test_results["Gemini Integration"] = test_chat_endpoint_gemini()
     
+    # NEW TESTS - Response completion and context preservation
+    completion_result, completion_session = test_response_completion()
+    test_results["Response Completion"] = completion_result
+    test_results["Conversation Context"] = test_conversation_context()
+    test_results["Session Management Detailed"] = test_session_management_detailed()
+    
     # Validation and storage tests
     test_results["Input Validation"] = test_chat_validation()
-    test_results["Session Management"] = test_session_endpoint(session_id)
+    test_results["Session Endpoint"] = test_session_endpoint(session_id or completion_session)
     test_results["MongoDB Storage"] = test_mongodb_storage()
     
     # Results summary
@@ -584,7 +590,7 @@ def run_comprehensive_tests():
             passed += 1
         else:
             # Mark critical failures
-            if test_name in ["Health Check", "Models API", "OpenAI Integration", "MongoDB Storage"]:
+            if test_name in ["Health Check", "Models API", "OpenAI Integration", "Response Completion", "Conversation Context", "Session Management Detailed"]:
                 critical_failures.append(test_name)
     
     print(f"\n📈 Overall: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
@@ -592,6 +598,9 @@ def run_comprehensive_tests():
     if passed == total:
         print("🎉 All tests passed! The AI Chatbot backend is fully functional.")
         print("✅ All LLM integrations working")
+        print("✅ Response completion working - no truncation")
+        print("✅ Conversation context preserved across messages")
+        print("✅ Session management operational")
         print("✅ Database storage operational")
         print("✅ All endpoints responding correctly")
     else:
