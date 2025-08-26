@@ -234,7 +234,7 @@ async def chat_with_ai(request: ChatRequest):
         conn.commit()
         conn.close()
 
-        return {"response": response.content}
+        return {"response": response}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
