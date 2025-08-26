@@ -127,29 +127,38 @@ async def chat(request: ChatRequest):
             print(f"Model {request.model} not found for {request.provider}. Using default.")
             request.model = AVAILABLE_MODELS[request.provider][0]
 
-        # Generate session ID
-        session_id = str(uuid.uuid4())
+        # Use existing session ID or generate new one
+        session_id = request.session_id or str(uuid.uuid4())
         
         # Create LLM chat instance
         chat = LlmChat(
             api_key=request.apiKey,
             session_id=session_id,
-            system_message="You are a helpful AI assistant. Provide clear, accurate, and helpful responses."
+            system_message="You are a helpful AI assistant. Provide clear, accurate, and comprehensive responses. Always complete your responses fully without cutting off mid-sentence."
         )
         
-        # Configure the model
+        # Configure the model with max tokens
         chat.with_model(request.provider, request.model)
         
-        # Get the last user message
-        last_message = request.messages[-1]
-        if last_message.role != "user":
-            raise HTTPException(status_code=400, detail="Last message must be from user")
+        # Send all messages for context, not just the last one
+        all_messages = []
+        for msg in request.messages:
+            if msg.role == "user":
+                all_messages.append(UserMessage(text=msg.content))
+            # For assistant messages, we can add them as context if needed
         
-        # Create user message
-        user_message = UserMessage(text=last_message.content)
+        # Get the last user message for the current request
+        last_user_message = None
+        for msg in reversed(request.messages):
+            if msg.role == "user":
+                last_user_message = UserMessage(text=msg.content)
+                break
         
-        # Send message and get response
-        response = await chat.send_message(user_message)
+        if not last_user_message:
+            raise HTTPException(status_code=400, detail="No user message found")
+        
+        # Send message with full context and get response
+        response = await chat.send_message(last_user_message, context_messages=request.messages[:-1])
         
         # Store conversation in database
         chat_record = {
