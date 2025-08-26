@@ -123,17 +123,17 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
                   borderTopRightRadius: 0,
                   borderBottomLeftRadius: '0.75rem',
                   borderBottomRightRadius: '0.75rem',
-                  fontSize: window.innerWidth < 640 ? '12px' : '14px',
+                  fontSize: isMobile ? '12px' : '14px',
                   lineHeight: '1.5',
-                  padding: window.innerWidth < 640 ? '1rem' : '1.25rem',
+                  padding: isMobile ? '1rem' : '1.25rem',
                   background: darkMode ? '#1e1e1e' : '#fafafa',
                 }}
-                showLineNumbers={code.split('\n').length > 5 && window.innerWidth >= 640}
+                showLineNumbers={code.split('\n').length > 5 && !isMobile}
                 lineNumberStyle={{
                   minWidth: '2.5em',
                   paddingRight: '1em',
                   color: darkMode ? '#6b7280' : '#9ca3af',
-                  fontSize: window.innerWidth < 640 ? '10px' : '12px'
+                  fontSize: isMobile ? '10px' : '12px'
                 }}
                 wrapLines={true}
                 wrapLongLines={true}
