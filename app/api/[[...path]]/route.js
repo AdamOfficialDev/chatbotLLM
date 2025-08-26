@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+// Railway deployment: backend runs on port 8001, frontend proxies API calls
+const BACKEND_URL = process.env.NODE_ENV === 'production' 
+  ? 'http://localhost:8001'  // Internal communication in Railway
+  : (process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001');
 
 export async function GET(request, { params }) {
   const path = params.path ? params.path.join('/') : '';
