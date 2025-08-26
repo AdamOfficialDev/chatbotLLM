@@ -4,16 +4,57 @@ type ModelMap = {
   [key in Provider]: string[];
 };
 
-// Available models by provider
+// Available models by provider - Updated with all latest models
 export const AVAILABLE_MODELS: ModelMap = {
   openai: [
-    'gpt-4o', 'gpt-4o-mini', 'gpt-4', 'gpt-3.5-turbo', 'gpt-4-turbo'
+    // Latest GPT models
+    'gpt-5',
+    'gpt-5-mini', 
+    'gpt-5-nano',
+    'gpt-4.1',
+    'gpt-4.1-mini',
+    'gpt-4.1-nano',
+    'gpt-4.1-2025-04-14',
+    'gpt-4.5-preview',
+    // O series models
+    'o1',
+    'o1-mini',
+    'o1-pro',
+    'o3',
+    'o3-mini', 
+    'o3-pro',
+    'o4-mini',
+    // Existing GPT-4 models
+    'gpt-4o',
+    'gpt-4o-mini',
+    'gpt-4',
+    'gpt-4-turbo',
+    'gpt-3.5-turbo'
   ],
   anthropic: [
-    'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'
+    // Latest Claude 4 models
+    'claude-4-sonnet-20250514',
+    'claude-4-opus-20250514',
+    // Claude 3.7 models
+    'claude-3-7-sonnet-20250219',
+    // Existing Claude 3.5 models
+    'claude-3-5-sonnet-20241022',
+    'claude-3-5-haiku-20241022',
+    // Legacy models
+    'claude-3-opus-20240229'
   ],
   gemini: [
-    'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'
+    // Latest Gemini 2.5 models
+    'gemini-2.5-flash',
+    'gemini-2.5-pro',
+    // Gemini 2.0 models
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
+    // Existing Gemini 1.5 models
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+    // Legacy models
+    'gemini-pro'
   ]
 };
 
