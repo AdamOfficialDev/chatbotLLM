@@ -14,7 +14,7 @@ import asyncio
 load_dotenv()
 
 # Import emergentintegrations
-import emergentintegrations
+from emergentintegrations import LlmChat
 from emergentintegrations.llm.chat import UserMessage
 
 app = FastAPI(title="AI Chatbot API", version="1.0.0")
@@ -172,7 +172,7 @@ async def chat_with_ai(request: ChatRequest):
 
         # Create LLM chat client using new unified API
         provider_model = f"{request.provider}/{request.model}"
-        llm_chat = emergentintegrations.LlmChat.from_provider(
+        llm_chat = LlmChat.from_provider(
             provider_model,
             api_key=request.apiKey or os.getenv("EMERGENT_LLM_KEY")
         )
