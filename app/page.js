@@ -68,33 +68,6 @@ export default function ChatbotApp() {
   const [sessionId, setSessionId] = useState(null); // Add session management
   const messagesEndRef = useRef(null);
 
-  // Update model when provider changes and fetch available models
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const response = await fetch('/api/models');
-        const data = await response.json();
-        if (data.models && data.models[provider]) {
-          setAvailableModels(data.models);
-          // Only set default model if no saved model exists for this provider
-          const savedModel = localStorage.getItem('selected_model');
-          if (!savedModel || !data.models[provider].includes(savedModel)) {
-            setModel(data.models[provider][0]);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch models:', error);
-        // Fallback to static models
-        const savedModel = localStorage.getItem('selected_model');
-        if (!savedModel || !AVAILABLE_MODELS[provider].includes(savedModel)) {
-          setModel(AVAILABLE_MODELS[provider][0]);
-        }
-      }
-    };
-    
-    fetchModels();
-  }, [provider]);
-
   // Scroll to bottom when messages change - optimized with debouncing
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
