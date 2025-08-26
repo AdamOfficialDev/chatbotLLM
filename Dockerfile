@@ -35,11 +35,13 @@ RUN yarn build
 RUN echo '#!/bin/sh\n\
 # Railway startup script\n\
 export PORT=${PORT:-3000}\n\
+export PATH="/opt/venv/bin:$PATH"\n\
 echo "=== Railway Deployment Starting ==="\n\
 echo "PORT: $PORT"\n\
 echo "NODE_ENV: $NODE_ENV"\n\
+echo "Python path: $(which python)"\n\
 echo "Starting backend on port 8001..."\n\
-cd /app && python3 backend/server.py &\n\
+cd /app && python backend/server.py &\n\
 BACKEND_PID=$!\n\
 echo "Backend PID: $BACKEND_PID"\n\
 sleep 10\n\
