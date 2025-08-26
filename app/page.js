@@ -13,11 +13,11 @@ import { AVAILABLE_MODELS } from '@/lib/llm-service.ts';
 import MarkdownMessage from '@/components/MarkdownMessage';
 import { memo } from 'react';
 
-// Memoized Message Component for better performance
+// Memoized Message Component for better performance with responsive design
 const MessageItem = memo(({ message, index, darkMode }) => {
   return (
     <div
-      className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+      className={`flex gap-3 sm:gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
     >
       {message.role === 'assistant' && (
         <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -26,7 +26,7 @@ const MessageItem = memo(({ message, index, darkMode }) => {
       )}
       
       <div
-        className={`max-w-[70%] p-4 rounded-2xl ${
+        className={`max-w-[85%] sm:max-w-[75%] lg:max-w-[70%] p-3 sm:p-4 rounded-2xl ${
           message.role === 'user'
             ? 'bg-blue-600 text-white rounded-br-md'
             : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md'
@@ -34,7 +34,7 @@ const MessageItem = memo(({ message, index, darkMode }) => {
       >
         {message.role === 'user' ? (
           <div className="prose prose-sm max-w-none">
-            <p className="whitespace-pre-wrap m-0 leading-relaxed text-white">
+            <p className="whitespace-pre-wrap m-0 leading-relaxed text-white text-sm sm:text-base">
               {message.content}
             </p>
           </div>
