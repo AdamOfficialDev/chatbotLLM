@@ -234,6 +234,8 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Markdown Rendering Fix"
+    - "Frontend Configuration Fix"
     - "Comprehensive LLM Model Integration"
     - "Models API Endpoint"
     - "Backend API Integration"
