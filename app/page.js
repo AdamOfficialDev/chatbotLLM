@@ -137,16 +137,26 @@ export default function ChatbotApp() {
     }
   }, []);
 
-  // Save chat messages to localStorage
-  useEffect(() => {
+  // Save chat messages to localStorage - throttled for performance
+  const saveMessagesToStorage = useCallback((messagesToSave) => {
     try {
-      if (messages.length > 0) {
-        localStorage.setItem('chat_messages', JSON.stringify(messages));
+      if (messagesToSave.length > 0) {
+        localStorage.setItem('chat_messages', JSON.stringify(messagesToSave));
       }
     } catch (error) {
       console.error('Error saving messages to localStorage:', error);
     }
-  }, [messages]);
+  }, []);
+
+  // Throttled localStorage save
+  useEffect(() => {
+    if (messages.length > 0) {
+      const timeoutId = setTimeout(() => {
+        saveMessagesToStorage(messages);
+      }, 1000); // Save after 1 second of inactivity
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, saveMessagesToStorage]);
 
   // Save session ID to localStorage
   useEffect(() => {
