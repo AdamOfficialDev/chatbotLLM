@@ -19,7 +19,7 @@ RUN yarn install --frozen-lockfile --network-timeout 100000 || \
 COPY backend/requirements.txt ./backend/requirements.txt
 
 # Install Python dependencies with retry logic
-RUN pip3 install --no-cache-dir --timeout 100 --retries 3 -r backend/requirements.txt
+RUN pip3 install --no-cache-dir --timeout 100 --retries 3 --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ -r backend/requirements.txt
 
 # Copy all source files
 COPY . .
