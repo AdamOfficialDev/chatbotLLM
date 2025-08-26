@@ -143,29 +143,29 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
         </code>
       );
     },
-    // Customize other markdown elements
+    // Responsive typography for headings
     h1: ({ children }) => (
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 mt-6 first:mt-0">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4 mt-4 sm:mt-6 first:mt-0">
         {children}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-5">
+      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 mt-3 sm:mt-5">
         {children}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 mt-4">
+      <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 mt-3 sm:mt-4">
         {children}
       </h3>
     ),
     h4: ({ children }) => (
-      <h4 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2 mt-3">
+      <h4 className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100 mb-2 mt-2 sm:mt-3">
         {children}
       </h4>
     ),
     p: ({ children }) => (
-      <p className="text-gray-800 dark:text-gray-200 mb-3 leading-relaxed">
+      <p className="text-sm sm:text-base text-gray-800 dark:text-gray-200 mb-3 leading-relaxed">
         {children}
       </p>
     ),
