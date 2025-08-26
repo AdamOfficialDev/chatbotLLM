@@ -10,8 +10,8 @@ import os
 import time
 from typing import Dict, Any, List
 
-# Backend URL - testing directly against the FastAPI backend
-BACKEND_URL = "http://localhost:8001"
+# Backend URL - using production URL from environment
+BACKEND_URL = "https://markdown-fix-1.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test API key from environment
