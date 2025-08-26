@@ -186,7 +186,7 @@ async def health_check():
     """Health check endpoint"""
     try:
         # Test database connection
-        db.admin.command('ping')
+        client.admin.command('ping')
         return {
             "status": "healthy",
             "database": "connected",
