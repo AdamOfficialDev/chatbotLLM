@@ -52,9 +52,9 @@ cd /app && npm start -- --hostname 0.0.0.0 --port $PORT\n\
 # Expose port for Railway
 EXPOSE $PORT
 
-# Health check for Railway monitoring
+# Health check for Railway monitoring (check backend health endpoint)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:$PORT/api/health || exit 1
+  CMD curl -f http://localhost:8001/api/health || exit 1
 
 # Start the application
 CMD ["./start.sh"]
