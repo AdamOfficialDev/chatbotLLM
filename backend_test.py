@@ -11,7 +11,7 @@ import time
 from typing import Dict, Any, List
 
 # Backend URL - using production URL from environment
-BACKEND_URL = "https://markdown-fix-1.preview.emergentagent.com"
+BACKEND_URL = "https://markdown-debug.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test API key from environment
