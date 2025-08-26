@@ -194,6 +194,14 @@ export default function ChatbotApp() {
     setMessages([]);
     setError(null);
     setSessionId(null); // Reset session for new conversation
+    
+    // Clear chat data from localStorage
+    try {
+      localStorage.removeItem('chat_messages');
+      localStorage.removeItem('current_session_id');
+    } catch (error) {
+      console.error('Error clearing chat data from localStorage:', error);
+    }
   };
 
   const newChat = () => {
