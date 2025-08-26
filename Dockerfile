@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Install Python for backend
-RUN apk add --no-cache python3 py3-pip py3-venv curl
+RUN apk add --no-cache python3 py3-pip curl
 
 # Set working directory
 WORKDIR /app
