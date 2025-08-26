@@ -234,7 +234,7 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
     hr: () => (
       <hr className="my-4 border-gray-200 dark:border-gray-700" />
     ),
-  };
+  }), [darkMode, copiedCode, getLanguageIcon, copyToClipboard]); // Dependencies for memoization
 
   return (
     <div className="prose prose-sm max-w-none">
@@ -246,4 +246,8 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
       </ReactMarkdown>
     </div>
   );
-}
+});
+
+MarkdownMessage.displayName = 'MarkdownMessage';
+
+export default MarkdownMessage;
