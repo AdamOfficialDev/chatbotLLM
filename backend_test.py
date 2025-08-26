@@ -309,6 +309,183 @@ def test_session_endpoint(session_id):
         print(f"❌ Session endpoint response is not valid JSON: {e}")
         return False
 
+def test_response_completion():
+    """Test that AI responses are complete and not cut off mid-sentence"""
+    print("\n=== Testing Response Completion (No Truncation) ===")
+    
+    # Ask for a longer response to test completion
+    payload = {
+        "messages": [{"role": "user", "content": "Please write a detailed explanation of how machine learning works, including at least 3 key concepts and examples. Make sure to end your response with the phrase 'This completes my explanation.'"}],
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "apiKey": EMERGENT_API_KEY
+    }
+    
+    try:
+        response = requests.post(
+            f"{API_BASE}/chat", 
+            json=payload,
+            headers={'Content-Type': 'application/json'},
+            timeout=60  # Longer timeout for detailed response
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            ai_response = data.get('response', '')
+            
+            # Check if response ends properly (not cut off)
+            if ai_response.strip().endswith('This completes my explanation.'):
+                print("✅ Response completion test passed - response ends properly")
+                print(f"Response length: {len(ai_response)} characters")
+                return True, data.get('session_id')
+            else:
+                print("❌ Response appears to be cut off - doesn't end with expected phrase")
+                print(f"Response ends with: '...{ai_response[-100:]}'")
+                return False, data.get('session_id')
+        else:
+            print(f"❌ Response completion test failed with status {response.status_code}")
+            return False, None
+            
+    except Exception as e:
+        print(f"❌ Response completion test failed: {e}")
+        return False, None
+
+def test_conversation_context():
+    """Test that conversation context is preserved across multiple messages"""
+    print("\n=== Testing Conversation Context Preservation ===")
+    
+    # First message - establish context
+    first_payload = {
+        "messages": [{"role": "user", "content": "My name is Alice and I love programming in Python. What's your favorite programming language?"}],
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "apiKey": EMERGENT_API_KEY
+    }
+    
+    try:
+        # Send first message
+        response1 = requests.post(f"{API_BASE}/chat", json=first_payload, timeout=30)
+        
+        if response1.status_code != 200:
+            print(f"❌ First message failed with status {response1.status_code}")
+            return False
+            
+        data1 = response1.json()
+        session_id = data1.get('session_id')
+        first_response = data1.get('response', '')
+        
+        print(f"First response received, session_id: {session_id}")
+        
+        # Second message - test context preservation
+        second_payload = {
+            "messages": [
+                {"role": "user", "content": "My name is Alice and I love programming in Python. What's your favorite programming language?"},
+                {"role": "assistant", "content": first_response},
+                {"role": "user", "content": "Do you remember my name and what programming language I mentioned I love?"}
+            ],
+            "provider": "openai",
+            "model": "gpt-4o-mini",
+            "apiKey": EMERGENT_API_KEY,
+            "session_id": session_id
+        }
+        
+        # Send second message with context
+        response2 = requests.post(f"{API_BASE}/chat", json=second_payload, timeout=30)
+        
+        if response2.status_code != 200:
+            print(f"❌ Second message failed with status {response2.status_code}")
+            return False
+            
+        data2 = response2.json()
+        second_response = data2.get('response', '').lower()
+        
+        # Check if AI remembers the context (name and programming language)
+        context_preserved = ('alice' in second_response and 'python' in second_response)
+        
+        if context_preserved:
+            print("✅ Conversation context preserved - AI remembers name and programming language")
+            print(f"Context response: {data2.get('response')[:200]}...")
+            return True
+        else:
+            print("❌ Conversation context not preserved - AI doesn't remember previous context")
+            print(f"Context response: {data2.get('response')[:200]}...")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Conversation context test failed: {e}")
+        return False
+
+def test_session_management_detailed():
+    """Test detailed session management and ID handling"""
+    print("\n=== Testing Detailed Session Management ===")
+    
+    # Test 1: New conversation without session_id
+    payload1 = {
+        "messages": [{"role": "user", "content": "Start a new conversation. Remember this number: 12345"}],
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "apiKey": EMERGENT_API_KEY
+    }
+    
+    try:
+        response1 = requests.post(f"{API_BASE}/chat", json=payload1, timeout=30)
+        
+        if response1.status_code != 200:
+            print(f"❌ New session test failed with status {response1.status_code}")
+            return False
+            
+        data1 = response1.json()
+        session_id = data1.get('session_id')
+        
+        if not session_id:
+            print("❌ No session_id returned for new conversation")
+            return False
+            
+        print(f"✅ New session created with ID: {session_id}")
+        
+        # Test 2: Continue conversation with same session_id
+        payload2 = {
+            "messages": [
+                {"role": "user", "content": "Start a new conversation. Remember this number: 12345"},
+                {"role": "assistant", "content": data1.get('response', '')},
+                {"role": "user", "content": "What number did I ask you to remember?"}
+            ],
+            "provider": "openai",
+            "model": "gpt-4o-mini",
+            "apiKey": EMERGENT_API_KEY,
+            "session_id": session_id
+        }
+        
+        response2 = requests.post(f"{API_BASE}/chat", json=payload2, timeout=30)
+        
+        if response2.status_code != 200:
+            print(f"❌ Session continuation test failed with status {response2.status_code}")
+            return False
+            
+        data2 = response2.json()
+        returned_session_id = data2.get('session_id')
+        
+        # Verify same session_id is returned
+        if returned_session_id != session_id:
+            print(f"❌ Session ID mismatch: expected {session_id}, got {returned_session_id}")
+            return False
+            
+        # Check if the number is remembered
+        response_text = data2.get('response', '').lower()
+        if '12345' in response_text:
+            print("✅ Session management working - same session_id maintained and context preserved")
+            return True
+        else:
+            print("❌ Session context not preserved despite same session_id")
+            print(f"Response: {data2.get('response')[:200]}...")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Session management test failed: {e}")
+        return False
+
 def test_mongodb_storage():
     """Test if chat data is being stored in MongoDB"""
     print("\n=== Testing MongoDB Chat Storage ===")
