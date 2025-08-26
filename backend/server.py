@@ -137,30 +137,32 @@ async def chat(request: ChatRequest):
             system_message="You are a helpful AI assistant. Provide clear, accurate, and comprehensive responses. Always complete your responses fully without cutting off mid-sentence. Use markdown formatting when appropriate for better readability."
         )
         
-        # Configure the model with max tokens
+        # Configure the model
         chat.with_model(request.provider, request.model)
-        
-        # Send all messages for context to the chat instance
-        # Convert messages to the appropriate format for emergentintegrations
-        conversation_messages = []
-        for msg in request.messages[:-1]:  # All except the last message
-            if msg.role == "user":
-                conversation_messages.append({"role": "user", "content": msg.content})
-            elif msg.role == "assistant":
-                conversation_messages.append({"role": "assistant", "content": msg.content})
         
         # Get the last user message for the current request
         last_user_message = request.messages[-1]
         if last_user_message.role != "user":
             raise HTTPException(status_code=400, detail="Last message must be from user")
         
-        user_message = UserMessage(text=last_user_message.content)
+        # If we have conversation history and this is continuing a session,
+        # we need to send all messages in the correct format
+        if len(request.messages) > 1:
+            # Create a comprehensive conversation context by building the full conversation
+            conversation_text = ""
+            for i, msg in enumerate(request.messages[:-1]):
+                if msg.role == "user":
+                    conversation_text += f"User: {msg.content}\n\n"
+                elif msg.role == "assistant":
+                    conversation_text += f"Assistant: {msg.content}\n\n"
+            
+            # Add context to the current user message
+            current_message = f"Previous conversation:\n{conversation_text}Current question: {last_user_message.content}"
+            user_message = UserMessage(text=current_message)
+        else:
+            user_message = UserMessage(text=last_user_message.content)
         
-        # Send message and get response - pass conversation context
-        if conversation_messages:
-            # Set conversation context before sending message
-            chat.conversation_history = conversation_messages
-        
+        # Send message and get response
         response = await chat.send_message(user_message)
         
         # Store conversation in database
