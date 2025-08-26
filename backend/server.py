@@ -169,10 +169,10 @@ async def chat_with_ai(request: ChatRequest):
         if request.model not in AVAILABLE_MODELS[request.provider]:
             raise HTTPException(status_code=400, detail="Invalid model for provider")
 
-        # Create LLM chat client
-        llm_chat = LlmChat(
-            provider=request.provider,
-            model_name=request.model,
+        # Create LLM chat client using new unified API
+        provider_model = f"{request.provider}/{request.model}"
+        llm_chat = LlmChat.from_provider(
+            provider_model,
             api_key=request.apiKey or os.getenv("EMERGENT_LLM_KEY")
         )
 
