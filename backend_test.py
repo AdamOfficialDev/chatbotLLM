@@ -10,7 +10,7 @@ import os
 from typing import Dict, Any
 
 # Get the base URL from environment
-BASE_URL = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://smart-converse-16.preview.emergentagent.com')
+BASE_URL = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://all-llm-models.preview.emergentagent.com')
 API_BASE = f"{BASE_URL}/api"
 
 def test_get_chat_endpoint():
