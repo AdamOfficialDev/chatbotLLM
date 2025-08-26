@@ -136,6 +136,7 @@ export default function ChatbotApp() {
   const clearChat = () => {
     setMessages([]);
     setError(null);
+    setSessionId(null); // Reset session for new conversation
   };
 
   const newChat = () => {
