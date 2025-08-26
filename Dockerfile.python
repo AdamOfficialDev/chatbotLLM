@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir --extra-index-url https://d33sy5i8bnduwe.cloudfro
 
 # Copy and install Node.js dependencies
 COPY package.json ./
-RUN npm install --only=production
+RUN npm install
 
 # Copy source code
 COPY . .
