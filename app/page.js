@@ -144,6 +144,38 @@ export default function ChatbotApp() {
     }
   }, []);
 
+  // Initialize models after provider is loaded
+  useEffect(() => {
+    const initializeModels = async () => {
+      try {
+        const response = await fetch('/api/models');
+        const data = await response.json();
+        if (data.models) {
+          setAvailableModels(data.models);
+          
+          // Load saved model or use first available model for current provider
+          const savedModel = localStorage.getItem('selected_model');
+          if (savedModel && data.models[provider] && data.models[provider].includes(savedModel)) {
+            setModel(savedModel);
+          } else if (data.models[provider]) {
+            setModel(data.models[provider][0]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+        // Fallback to static models
+        const savedModel = localStorage.getItem('selected_model');
+        if (savedModel && AVAILABLE_MODELS[provider] && AVAILABLE_MODELS[provider].includes(savedModel)) {
+          setModel(savedModel);
+        } else if (AVAILABLE_MODELS[provider]) {
+          setModel(AVAILABLE_MODELS[provider][0]);
+        }
+      }
+    };
+    
+    initializeModels();
+  }, [provider]); // Run when provider changes
+
   // Save chat messages to localStorage - throttled for performance
   const saveMessagesToStorage = useCallback((messagesToSave) => {
     try {
