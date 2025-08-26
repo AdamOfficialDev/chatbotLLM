@@ -298,94 +298,93 @@ export default function ChatbotApp() {
         overflow-hidden flex flex-col
       `}>
         <div className={`${sidebarOpen ? 'block' : 'hidden'} lg:block h-full flex flex-col`}>
-          <>
-            {/* Sidebar Header */}
-            <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-3 lg:mb-0">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 lg:hidden">
-                  Settings
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarOpen(false)}
-                  className="lg:hidden text-gray-600 dark:text-gray-400"
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </div>
-              <Button 
-                onClick={newChat}
-                className="w-full justify-start gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[44px]"
+          {/* Sidebar Header */}
+          <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3 lg:mb-0">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 lg:hidden">
+                Settings
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden text-gray-600 dark:text-gray-400"
               >
-                <Plus className="h-4 w-4" />
-                New Chat
+                <Menu className="h-5 w-5" />
               </Button>
             </div>
+            <Button 
+              onClick={newChat}
+              className="w-full justify-start gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[44px]"
+            >
+              <Plus className="h-4 w-4" />
+              New Chat
+            </Button>
+          </div>
 
-            {/* Model Configuration */}
-            <div className="p-3 sm:p-4 space-y-4 border-b border-gray-200 dark:border-gray-700">
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Provider</label>
-                <Select value={provider} onValueChange={setProvider}>
-                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 min-h-[44px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="openai">OpenAI</SelectItem>
-                    <SelectItem value="anthropic">Anthropic</SelectItem>
-                    <SelectItem value="gemini">Google Gemini</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Model</label>
-                <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 min-h-[44px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableModels[provider]?.map(m => (
-                      <SelectItem key={m} value={m} className="text-sm">{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">API Key</label>
-                <Input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter your Emergent API key..."
-                  className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 font-mono text-xs min-h-[44px]"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Get your universal key from Profile → Universal Key
-                </p>
-              </div>
-
-              {/* Current Configuration */}
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary" className="text-xs">{provider}</Badge>
-                <Badge variant="outline" className="text-xs break-all">{model}</Badge>
-                {apiKey && <Badge variant="default" className="text-xs">API Key Set</Badge>}
-              </div>
+          {/* Model Configuration */}
+          <div className="p-3 sm:p-4 space-y-4 border-b border-gray-200 dark:border-gray-700">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Provider</label>
+              <Select value={provider} onValueChange={setProvider}>
+                <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 min-h-[44px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                  <SelectItem value="gemini">Google Gemini</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Chat History Placeholder */}
-            <div className="flex-1 p-3 sm:p-4 overflow-y-auto">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Recent Chats</h3>
-              <div className="space-y-2">
-                <div className="text-xs text-gray-500 dark:text-gray-400 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
-                  Previous conversations will appear here
-                </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Model</label>
+              <Select value={model} onValueChange={setModel}>
+                <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 min-h-[44px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableModels[provider]?.map(m => (
+                    <SelectItem key={m} value={m} className="text-sm">{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">API Key</label>
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your Emergent API key..."
+                className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 font-mono text-xs min-h-[44px]"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Get your universal key from Profile → Universal Key
+              </p>
+            </div>
+
+            {/* Current Configuration */}
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary" className="text-xs">{provider}</Badge>
+              <Badge variant="outline" className="text-xs break-all">{model}</Badge>
+              {apiKey && <Badge variant="default" className="text-xs">API Key Set</Badge>}
+            </div>
+          </div>
+
+          {/* Chat History Placeholder */}
+          <div className="flex-1 p-3 sm:p-4 overflow-y-auto">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Recent Chats</h3>
+            <div className="space-y-2">
+              <div className="text-xs text-gray-500 dark:text-gray-400 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+                Previous conversations will appear here
               </div>
             </div>
           </div>
         </div>
+      </div>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white dark:bg-gray-800 min-w-0">
