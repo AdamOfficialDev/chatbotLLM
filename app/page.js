@@ -199,7 +199,12 @@ export default function ChatbotApp() {
     e.preventDefault();
     if (!input.trim() || !apiKey.trim()) return;
 
-    const userMessage = { role: 'user', content: input };
+    const timestamp = Date.now();
+    const userMessage = { 
+      role: 'user', 
+      content: input,
+      timestamp
+    };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput('');
@@ -238,7 +243,8 @@ export default function ChatbotApp() {
 
       const assistantMessage = { 
         role: 'assistant', 
-        content: data.response 
+        content: data.response,
+        timestamp: Date.now()
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (err) {
