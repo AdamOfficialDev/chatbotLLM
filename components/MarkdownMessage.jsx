@@ -87,9 +87,11 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
                 <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize truncate">
                   {language || 'Code'}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full flex-shrink-0 hidden sm:inline">
-                  {code.split('\n').length} lines
-                </span>
+                {!isMobile && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full flex-shrink-0">
+                    {code.split('\n').length} lines
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => copyToClipboard(code, codeIndex)}
@@ -99,12 +101,12 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
                 {copiedCode === codeIndex ? (
                   <>
                     <Check className="h-3 w-3 text-green-600" />
-                    <span className="font-medium text-green-600 hidden sm:inline">Copied!</span>
+                    {!isMobile && <span className="font-medium text-green-600">Copied!</span>}
                   </>
                 ) : (
                   <>
                     <Copy className="h-3 w-3" />
-                    <span className="font-medium hidden sm:inline">Copy</span>
+                    {!isMobile && <span className="font-medium">Copy</span>}
                   </>
                 )}
               </button>
