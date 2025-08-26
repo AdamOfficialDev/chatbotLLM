@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-Railway Deployment Configuration and MongoDB Integration Testing
-Tests Railway-specific features and MongoDB flexibility for AI Chatbot
+SQLite Backend Testing for AI Chatbot
+Tests complete backend functionality after switching from MongoDB to SQLite
 """
 
 import requests
 import json
 import os
 import time
-import subprocess
+import sqlite3
+import uuid
 from typing import Dict, Any, List
 
 # Backend URL - using production URL from environment
