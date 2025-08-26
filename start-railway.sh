@@ -6,7 +6,14 @@ echo "Starting Railway deployment..."
 # Set default port if not provided by Railway
 export PORT=${PORT:-3000}
 
+# Activate virtual environment if it exists
+if [ -d "/opt/venv" ]; then
+    export PATH="/opt/venv/bin:$PATH"
+    echo "Using virtual environment: /opt/venv"
+fi
+
 echo "PORT set to: $PORT"
+echo "Python path: $(which python)"
 
 # Start backend in background on port 8001
 echo "Starting FastAPI backend on port 8001..."
