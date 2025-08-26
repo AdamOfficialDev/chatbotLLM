@@ -1,9 +1,21 @@
-# 🚀 Setup Railway Deployment - Langkah Mudah
+# 🚀 Setup Railway Deployment - Langkah Mudah (FIXED)
+
+## ⚠️ IMPORTANT: Commit yarn.lock File
+Pastikan file `yarn.lock` sudah di-commit ke repository Anda:
+```bash
+# Generate yarn.lock if missing
+yarn install
+
+# Commit to git
+git add yarn.lock
+git commit -m "Add yarn.lock for Railway deployment"
+git push origin main
+```
 
 ## 1. Push Code ke GitHub
 ```bash
 git add .
-git commit -m "Railway deployment ready"
+git commit -m "Railway deployment ready with fixed Dockerfile"
 git push origin main
 ```
 
@@ -46,14 +58,20 @@ DB_NAME=chatbot_db
 CORS_ORIGINS=*
 ```
 
-## 5. Deployment
+## 5. Jika Build Error (yarn.lock issue)
+Jika masih ada error, coba ganti ke npm:
+1. Di Railway dashboard, buka **Settings**
+2. Ganti **Build Command** ke: `npm install && npm run build`
+3. Atau gunakan **Dockerfile.railway** (sudah diset di railway.toml)
+
+## 6. Deployment
 Railway akan otomatis:
 - ✅ Detect `railway.toml` 
-- ✅ Use `Dockerfile` untuk build
+- ✅ Use `Dockerfile.railway` untuk build yang lebih stabil
 - ✅ Set PORT environment variable
 - ✅ Generate public URL
 
-## 6. Verify Deployment
+## 7. Verify Deployment
 Test endpoints:
 - **Health**: `https://your-app.railway.app/api/health`
 - **Models**: `https://your-app.railway.app/api/models` 
@@ -65,12 +83,23 @@ Test endpoints:
 ✅ Chat history dengan MongoDB
 ✅ Responsive design 
 ✅ Markdown rendering
-✅ Railway optimized
+✅ Railway optimized dengan 2 Dockerfile options
 
-## 🔧 Troubleshooting
-- **Build fail**: Check Railway build logs
-- **DB connection**: Verify MONGO_URL format
-- **Cold starts**: Railway apps sleep after inactivity
+## 🔧 Troubleshooting Build Issues
+### yarn.lock missing:
+```bash
+yarn install
+git add yarn.lock
+git commit -m "Add yarn.lock"
+```
+
+### Network timeout:
+- Railway akan menggunakan `Dockerfile.railway` (lebih stabil)
+- Menggunakan npm instead of yarn untuk reliability
+
+### Python dependencies fail:
+- Dockerfile sudah include retry logic
+- Menggunakan --no-cache-dir untuk optimasi
 
 ## 🎯 Done!
-Aplikasi siap production di Railway dengan zero configuration!
+Aplikasi siap production di Railway dengan error handling yang lebih baik!
