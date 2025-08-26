@@ -169,12 +169,12 @@ async def chat_with_ai(request: ChatRequest):
         if request.model not in AVAILABLE_MODELS[request.provider]:
             raise HTTPException(status_code=400, detail="Invalid model for provider")
 
-        # Create LLM chat client using new unified API
-        provider_model = f"{request.provider}/{request.model}"
-        llm_chat = LlmChat.from_provider(
-            provider_model,
-            api_key=request.apiKey or os.getenv("EMERGENT_LLM_KEY")
-        )
+        # Create LLM chat client using emergentintegrations
+        llm_chat = LlmChat(
+            api_key=request.apiKey or os.getenv("EMERGENT_LLM_KEY"),
+            session_id=request.session_id,
+            system_message="You are a helpful AI assistant. Please provide complete, well-structured responses. Use markdown formatting when appropriate for better readability. Be comprehensive in your answers and maintain context throughout the conversation."
+        ).with_model(request.provider, request.model)
 
         # Get conversation history for context
         conn = sqlite3.connect(DB_PATH)
