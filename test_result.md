@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "please fix untuk hasil respon dari ai nya ko tercetak untuk markdown nya, saya ingin untuk markdown nya terconvert dan untuk sebuah code masuk ke codeblock"
+user_problem_statement: "Saya ingin anda membuatkan konfigurasi untuk website saya ini yang mana saya ingin websitenya di deploy ke railway tanpa ribet dan untuk penyimpanan saya ingin menggunakan dari railway bukan yang bukan mongodb."
 
 backend:
   - task: "Chat Context & Response Completion Fix"
