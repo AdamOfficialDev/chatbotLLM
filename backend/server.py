@@ -208,11 +208,11 @@ async def chat_with_ai(request: ChatRequest):
         messages.append({"role": "user", "content": request.message})
 
         # Send to LLM
-        user_message = UserMessage(content=request.message, context=messages[:-1])  # Exclude current message from context
+        user_message = UserMessage(content=request.message)
         response = await llm_chat.send_message(user_message)
         
-        if not response or not hasattr(response, 'content'):
-            raise HTTPException(status_code=500, detail="Invalid response from AI")
+        if not response:
+            raise HTTPException(status_code=500, detail="Empty response from AI")
 
         # Store chat in database
         chat_id = str(uuid.uuid4())
