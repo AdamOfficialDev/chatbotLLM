@@ -149,6 +149,7 @@ backend:
       - working: true
         agent: "main"
         comment: "FIXED TWO CRITICAL ISSUES: (1) Models API Error - Installed missing emergentintegrations library, backend now serving models API correctly. (2) Chat Input Lagging - Implemented performance optimizations: memoized MessageItem components, throttled localStorage saves (1s delay), debounced scroll behavior, added timestamps to messages, optimized MarkdownMessage with useMemo for components object. These changes should significantly reduce lag when there are many chat messages."
+  - task: "Frontend Configuration Fix"
     implemented: true
     working: true
     file: "/etc/supervisor/conf.d/supervisord.conf"
