@@ -215,6 +215,7 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    # Railway will provide PORT environment variable
-    port = int(os.getenv("PORT", 8001))
+    # Backend should run on fixed port 8001 for Railway
+    # Frontend will use Railway's PORT environment variable  
+    port = 8001
     uvicorn.run(app, host="0.0.0.0", port=port)
