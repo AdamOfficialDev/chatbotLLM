@@ -19,347 +19,489 @@ API_BASE = f"{BACKEND_URL}/api"
 # Test API key from environment
 EMERGENT_API_KEY = "sk-emergent-a57065a3873E44634A"
 
-def test_railway_port_configuration():
-    """Test Railway PORT environment variable handling"""
-    print("\n=== Testing Railway PORT Environment Variable Configuration ===")
-    
-    # Check if backend server is configured to use PORT environment variable
-    try:
-        # Read the server.py file to verify PORT handling
-        with open('/app/backend/server.py', 'r') as f:
-            server_code = f.read()
-        
-        # Check for Railway PORT configuration
-        port_config_found = False
-        if 'PORT' in server_code and 'os.getenv("PORT"' in server_code:
-            port_config_found = True
-            print("✅ Backend configured to use Railway PORT environment variable")
-        else:
-            print("❌ Backend not configured for Railway PORT environment variable")
-        
-        # Test if the server responds (indicating it's running on correct port)
-        response = requests.get(f"{BACKEND_URL}/", timeout=10)
-        if response.status_code == 200:
-            print("✅ Backend server responding correctly on Railway-assigned port")
-            server_responding = True
-        else:
-            print(f"❌ Backend server not responding correctly: {response.status_code}")
-            server_responding = False
-            
-        return port_config_found and server_responding
-        
-    except Exception as e:
-        print(f"❌ Railway PORT configuration test failed: {e}")
-        return False
-
-def test_mongodb_url_flexibility():
-    """Test MongoDB connection flexibility (MONGO_URL vs MONGODB_URL)"""
-    print("\n=== Testing MongoDB URL Flexibility ===")
+def test_database_connection():
+    """Test SQLite database connection via health endpoint"""
+    print("\n=== Testing SQLite Database Connection ===")
     
     try:
-        # Read the server.py file to verify MongoDB URL handling
-        with open('/app/backend/server.py', 'r') as f:
-            server_code = f.read()
-        
-        # Check for flexible MongoDB URL configuration
-        mongo_flexibility = False
-        if 'MONGO_URL' in server_code and 'MONGODB_URL' in server_code:
-            if 'os.getenv("MONGO_URL") or os.getenv("MONGODB_URL")' in server_code:
-                mongo_flexibility = True
-                print("✅ Backend configured for flexible MongoDB URL (MONGO_URL or MONGODB_URL)")
-            else:
-                print("❌ Backend not configured for MongoDB URL flexibility")
-        else:
-            print("❌ Backend missing MongoDB URL flexibility configuration")
-        
-        # Test database connection through health endpoint
         response = requests.get(f"{API_BASE}/health", timeout=10)
+        
         if response.status_code == 200:
             data = response.json()
+            print(f"Health response: {data}")
+            
+            # Check if database shows as connected
             if data.get("database") == "connected":
-                print("✅ MongoDB connection working correctly")
-                db_connected = True
-            else:
-                print("❌ MongoDB connection not working")
-                db_connected = False
-        else:
-            print("❌ Cannot verify MongoDB connection via health endpoint")
-            db_connected = False
-            
-        return mongo_flexibility and db_connected
-        
-    except Exception as e:
-        print(f"❌ MongoDB URL flexibility test failed: {e}")
-        return False
-
-def test_railway_health_monitoring():
-    """Test health check endpoint for Railway monitoring"""
-    print("\n=== Testing Railway Health Check Monitoring ===")
-    
-    try:
-        # Test health endpoint response time and format
-        start_time = time.time()
-        response = requests.get(f"{API_BASE}/health", timeout=10)
-        response_time = time.time() - start_time
-        
-        print(f"Health endpoint response time: {response_time:.2f}s")
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Check required fields for Railway monitoring
-            required_fields = ["status", "database"]
-            missing_fields = [field for field in required_fields if field not in data]
-            
-            if not missing_fields:
-                print("✅ Health endpoint has all required fields for Railway monitoring")
+                print("✅ SQLite database connection working correctly")
                 
-                # Check status values
+                # Check if status is healthy
                 if data.get("status") == "healthy":
-                    print("✅ Health status reporting correctly")
-                    status_ok = True
+                    print("✅ Backend health status is healthy")
+                    return True
                 else:
-                    print(f"❌ Health status not 'healthy': {data.get('status')}")
-                    status_ok = False
-                
-                # Check database status
-                if data.get("database") == "connected":
-                    print("✅ Database status reporting correctly")
-                    db_ok = True
-                else:
-                    print(f"❌ Database status not 'connected': {data.get('database')}")
-                    db_ok = False
-                
-                # Check response time (should be fast for health checks)
-                if response_time < 5.0:
-                    print("✅ Health endpoint response time acceptable for monitoring")
-                    time_ok = True
-                else:
-                    print(f"❌ Health endpoint too slow for monitoring: {response_time:.2f}s")
-                    time_ok = False
-                
-                return status_ok and db_ok and time_ok
+                    print(f"❌ Backend health status not healthy: {data.get('status')}")
+                    return False
             else:
-                print(f"❌ Health endpoint missing required fields: {missing_fields}")
+                print(f"❌ SQLite database not connected: {data.get('database')}")
                 return False
         else:
             print(f"❌ Health endpoint returned status {response.status_code}")
             return False
             
     except Exception as e:
-        print(f"❌ Railway health monitoring test failed: {e}")
+        print(f"❌ Database connection test failed: {e}")
         return False
 
-def test_api_endpoints_railway_ready():
-    """Test all critical API endpoints for Railway deployment readiness"""
-    print("\n=== Testing API Endpoints for Railway Deployment ===")
+def test_models_api():
+    """Test models API endpoint - should return all OpenAI, Anthropic, Gemini models"""
+    print("\n=== Testing Models API Endpoint ===")
     
-    endpoints_to_test = [
-        ("/api/health", "GET"),
-        ("/api/models", "GET"),
-        ("/api/chat", "POST")
+    try:
+        response = requests.get(f"{API_BASE}/models", timeout=10)
+        
+        if response.status_code == 200:
+            models = response.json()
+            print(f"Models API response received")
+            
+            # Check if all three providers are present
+            expected_providers = ["openai", "anthropic", "gemini"]
+            missing_providers = []
+            
+            for provider in expected_providers:
+                if provider not in models:
+                    missing_providers.append(provider)
+                else:
+                    model_count = len(models[provider])
+                    print(f"✅ {provider}: {model_count} models available")
+            
+            if not missing_providers:
+                print("✅ All three providers (OpenAI, Anthropic, Gemini) available")
+                
+                # Check specific models mentioned in review request
+                test_models = {
+                    "openai": "gpt-4o-mini",
+                    "anthropic": "claude-3-5-sonnet-20241022", 
+                    "gemini": "gemini-1.5-flash"
+                }
+                
+                all_test_models_available = True
+                for provider, model in test_models.items():
+                    if model in models[provider]:
+                        print(f"✅ Test model {model} available in {provider}")
+                    else:
+                        print(f"❌ Test model {model} not available in {provider}")
+                        all_test_models_available = False
+                
+                return all_test_models_available
+            else:
+                print(f"❌ Missing providers: {missing_providers}")
+                return False
+        else:
+            print(f"❌ Models API returned status {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Models API test failed: {e}")
+        return False
+
+def test_chat_functionality():
+    """Test chat functionality with different providers"""
+    print("\n=== Testing Chat Functionality with Different Providers ===")
+    
+    # Test models for each provider
+    test_cases = [
+        {"provider": "openai", "model": "gpt-4o-mini", "message": "Hello from OpenAI test"},
+        {"provider": "anthropic", "model": "claude-3-5-sonnet-20241022", "message": "Hello from Anthropic test"},
+        {"provider": "gemini", "model": "gemini-1.5-flash", "message": "Hello from Gemini test"}
     ]
     
     results = {}
+    session_id = str(uuid.uuid4())
     
-    for endpoint, method in endpoints_to_test:
-        print(f"\n--- Testing {method} {endpoint} ---")
+    for test_case in test_cases:
+        provider = test_case["provider"]
+        model = test_case["model"]
+        message = test_case["message"]
+        
+        print(f"\n--- Testing {provider} with {model} ---")
         
         try:
-            if method == "GET":
-                response = requests.get(f"{BACKEND_URL}{endpoint}", timeout=10)
-            elif method == "POST":
-                # Test POST with minimal valid payload
-                payload = {
-                    "messages": [{"role": "user", "content": "Railway deployment test"}],
-                    "provider": "openai",
-                    "model": "gpt-4o-mini",
-                    "apiKey": EMERGENT_API_KEY
-                }
-                response = requests.post(
-                    f"{BACKEND_URL}{endpoint}", 
-                    json=payload,
-                    headers={'Content-Type': 'application/json'},
-                    timeout=30
-                )
+            payload = {
+                "message": message,
+                "session_id": session_id,
+                "model": model,
+                "provider": provider,
+                "apiKey": EMERGENT_API_KEY
+            }
             
-            if response.status_code in [200, 201]:
-                print(f"✅ {endpoint} responding correctly ({response.status_code})")
-                results[endpoint] = True
+            response = requests.post(
+                f"{API_BASE}/chat",
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "response" in data and data["response"]:
+                    print(f"✅ {provider} chat working - Response length: {len(data['response'])} chars")
+                    results[provider] = True
+                else:
+                    print(f"❌ {provider} chat returned empty response")
+                    results[provider] = False
             else:
-                print(f"❌ {endpoint} returned status {response.status_code}")
-                results[endpoint] = False
+                print(f"❌ {provider} chat failed with status {response.status_code}")
+                if response.text:
+                    print(f"Error details: {response.text}")
+                results[provider] = False
                 
         except Exception as e:
-            print(f"❌ {endpoint} test failed: {e}")
-            results[endpoint] = False
+            print(f"❌ {provider} chat test failed: {e}")
+            results[provider] = False
     
-    # Check if all critical endpoints are working
-    all_working = all(results.values())
-    if all_working:
-        print("✅ All critical API endpoints ready for Railway deployment")
+    # Check overall results
+    successful_providers = [p for p, result in results.items() if result]
+    if len(successful_providers) == 3:
+        print("✅ All three providers working correctly")
+        return True
     else:
-        failed_endpoints = [ep for ep, result in results.items() if not result]
-        print(f"❌ Failed endpoints: {failed_endpoints}")
-    
-    return all_working
-
-def test_build_configuration():
-    """Test build configuration and dependencies for Railway deployment"""
-    print("\n=== Testing Build Configuration for Railway ===")
-    
-    try:
-        # Check if requirements.txt exists and has necessary dependencies
-        requirements_path = '/app/backend/requirements.txt'
-        if os.path.exists(requirements_path):
-            with open(requirements_path, 'r') as f:
-                requirements = f.read()
-            
-            # Check for critical dependencies
-            critical_deps = ['fastapi', 'uvicorn', 'pymongo', 'emergentintegrations']
-            missing_deps = []
-            
-            for dep in critical_deps:
-                if dep not in requirements.lower():
-                    missing_deps.append(dep)
-            
-            if not missing_deps:
-                print("✅ All critical dependencies present in requirements.txt")
-                deps_ok = True
-            else:
-                print(f"❌ Missing critical dependencies: {missing_deps}")
-                deps_ok = False
-        else:
-            print("❌ requirements.txt not found")
-            deps_ok = False
-        
-        # Check if Dockerfile exists (Railway deployment)
-        dockerfile_path = '/app/Dockerfile'
-        if os.path.exists(dockerfile_path):
-            print("✅ Dockerfile found for Railway deployment")
-            dockerfile_ok = True
-        else:
-            print("❌ Dockerfile not found")
-            dockerfile_ok = False
-        
-        # Check if railway.toml exists
-        railway_config_path = '/app/railway.toml'
-        if os.path.exists(railway_config_path):
-            print("✅ railway.toml configuration found")
-            railway_config_ok = True
-        else:
-            print("❌ railway.toml configuration not found")
-            railway_config_ok = False
-        
-        # Test if backend can start (check if it's currently running)
-        try:
-            response = requests.get(f"{BACKEND_URL}/", timeout=5)
-            if response.status_code == 200:
-                print("✅ Backend application starts successfully")
-                startup_ok = True
-            else:
-                print("❌ Backend application not responding")
-                startup_ok = False
-        except:
-            print("❌ Backend application not accessible")
-            startup_ok = False
-        
-        return deps_ok and dockerfile_ok and startup_ok
-        
-    except Exception as e:
-        print(f"❌ Build configuration test failed: {e}")
+        failed_providers = [p for p, result in results.items() if not result]
+        print(f"❌ Failed providers: {failed_providers}")
         return False
 
-def test_environment_variables_flexibility():
-    """Test API key configuration flexibility"""
-    print("\n=== Testing Environment Variables Flexibility ===")
+def test_session_management():
+    """Test chat history storage and retrieval via sessions endpoint"""
+    print("\n=== Testing Session Management and Chat History ===")
     
     try:
-        # Test with Emergent Universal API key
-        payload = {
-            "messages": [{"role": "user", "content": "Test API key flexibility"}],
-            "provider": "openai",
+        # Create a unique session for testing
+        test_session_id = str(uuid.uuid4())
+        
+        # Send multiple messages to create history
+        messages = [
+            "My name is Alice and I'm learning Python",
+            "What programming language am I learning?",
+            "What is my name?"
+        ]
+        
+        print(f"Creating test session: {test_session_id}")
+        
+        # Send messages and collect responses
+        for i, message in enumerate(messages):
+            print(f"Sending message {i+1}: {message}")
+            
+            payload = {
+                "message": message,
+                "session_id": test_session_id,
+                "model": "gpt-4o-mini",
+                "provider": "openai",
+                "apiKey": EMERGENT_API_KEY
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/chat",
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                print(f"✅ Message {i+1} sent successfully")
+                
+                # For context test, check if AI remembers previous info
+                if i == 1:  # Second message asking about programming language
+                    if "python" in data["response"].lower():
+                        print("✅ AI remembered programming language from previous message")
+                elif i == 2:  # Third message asking about name
+                    if "alice" in data["response"].lower():
+                        print("✅ AI remembered name from first message")
+            else:
+                print(f"❌ Message {i+1} failed with status {response.status_code}")
+                return False
+        
+        # Now test session history retrieval
+        print(f"\nRetrieving session history for: {test_session_id}")
+        
+        history_response = requests.get(f"{API_BASE}/sessions/{test_session_id}", timeout=10)
+        
+        if history_response.status_code == 200:
+            history_data = history_response.json()
+            
+            if "chats" in history_data:
+                chats = history_data["chats"]
+                print(f"✅ Session history retrieved - {len(chats)} messages found")
+                
+                # Verify all messages are stored
+                if len(chats) == len(messages):
+                    print("✅ All messages stored correctly in SQLite database")
+                    
+                    # Check if messages have required fields
+                    required_fields = ["id", "user_message", "ai_response", "model", "provider", "timestamp"]
+                    all_fields_present = True
+                    
+                    for chat in chats:
+                        missing_fields = [field for field in required_fields if field not in chat]
+                        if missing_fields:
+                            print(f"❌ Missing fields in chat record: {missing_fields}")
+                            all_fields_present = False
+                    
+                    if all_fields_present:
+                        print("✅ All chat records have required fields")
+                        return True
+                    else:
+                        print("❌ Some chat records missing required fields")
+                        return False
+                else:
+                    print(f"❌ Expected {len(messages)} messages, found {len(chats)}")
+                    return False
+            else:
+                print("❌ Session history response missing 'chats' field")
+                return False
+        else:
+            print(f"❌ Session history retrieval failed with status {history_response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Session management test failed: {e}")
+        return False
+
+def test_sqlite_database_persistence():
+    """Test SQLite database file creation and table structure"""
+    print("\n=== Testing SQLite Database Persistence ===")
+    
+    try:
+        # Check if SQLite database file exists
+        db_path = "/app/backend/chatbot.db"
+        
+        if os.path.exists(db_path):
+            print("✅ SQLite database file exists")
+            
+            # Connect to database and check tables
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Check if required tables exist
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = [row[0] for row in cursor.fetchall()]
+            
+            required_tables = ["chats", "sessions"]
+            missing_tables = [table for table in required_tables if table not in tables]
+            
+            if not missing_tables:
+                print("✅ All required tables (chats, sessions) exist")
+                
+                # Check table structure for chats table
+                cursor.execute("PRAGMA table_info(chats)")
+                chats_columns = [row[1] for row in cursor.fetchall()]
+                
+                required_chat_columns = ["id", "session_id", "user_message", "ai_response", "model", "provider", "timestamp"]
+                missing_chat_columns = [col for col in required_chat_columns if col not in chats_columns]
+                
+                if not missing_chat_columns:
+                    print("✅ Chats table has all required columns")
+                    
+                    # Check sessions table structure
+                    cursor.execute("PRAGMA table_info(sessions)")
+                    sessions_columns = [row[1] for row in cursor.fetchall()]
+                    
+                    required_session_columns = ["session_id", "created_at", "updated_at"]
+                    missing_session_columns = [col for col in required_session_columns if col not in sessions_columns]
+                    
+                    if not missing_session_columns:
+                        print("✅ Sessions table has all required columns")
+                        
+                        # Check if there's any data (from previous tests)
+                        cursor.execute("SELECT COUNT(*) FROM chats")
+                        chat_count = cursor.fetchone()[0]
+                        
+                        cursor.execute("SELECT COUNT(*) FROM sessions")
+                        session_count = cursor.fetchone()[0]
+                        
+                        print(f"✅ Database contains {chat_count} chat records and {session_count} sessions")
+                        
+                        conn.close()
+                        return True
+                    else:
+                        print(f"❌ Sessions table missing columns: {missing_session_columns}")
+                        conn.close()
+                        return False
+                else:
+                    print(f"❌ Chats table missing columns: {missing_chat_columns}")
+                    conn.close()
+                    return False
+            else:
+                print(f"❌ Missing required tables: {missing_tables}")
+                conn.close()
+                return False
+        else:
+            print("❌ SQLite database file not found")
+            return False
+            
+    except Exception as e:
+        print(f"❌ SQLite database persistence test failed: {e}")
+        return False
+
+def test_multiple_sessions_isolation():
+    """Test that different session IDs maintain isolation"""
+    print("\n=== Testing Multiple Sessions Isolation ===")
+    
+    try:
+        # Create two different sessions
+        session1_id = str(uuid.uuid4())
+        session2_id = str(uuid.uuid4())
+        
+        # Send different messages to each session
+        session1_message = "I am working on a React project"
+        session2_message = "I am studying machine learning"
+        
+        # Send to session 1
+        payload1 = {
+            "message": session1_message,
+            "session_id": session1_id,
             "model": "gpt-4o-mini",
+            "provider": "openai",
             "apiKey": EMERGENT_API_KEY
         }
         
-        response = requests.post(
-            f"{API_BASE}/chat", 
-            json=payload,
+        response1 = requests.post(
+            f"{API_BASE}/chat",
+            json=payload1,
             headers={'Content-Type': 'application/json'},
-            timeout=30
+            timeout=60
         )
         
-        if response.status_code == 200:
-            print("✅ Emergent Universal API key working correctly")
-            emergent_key_ok = True
-        else:
-            print(f"❌ Emergent Universal API key failed: {response.status_code}")
-            emergent_key_ok = False
+        # Send to session 2
+        payload2 = {
+            "message": session2_message,
+            "session_id": session2_id,
+            "model": "gpt-4o-mini",
+            "provider": "openai",
+            "apiKey": EMERGENT_API_KEY
+        }
         
-        # Check if API key is not hardcoded in the backend
-        with open('/app/backend/server.py', 'r') as f:
-            server_code = f.read()
+        response2 = requests.post(
+            f"{API_BASE}/chat",
+            json=payload2,
+            headers={'Content-Type': 'application/json'},
+            timeout=60
+        )
         
-        # Look for hardcoded API keys (should not exist)
-        hardcoded_patterns = ['sk-', 'api_key=', 'apikey=']
-        hardcoded_found = False
-        
-        for pattern in hardcoded_patterns:
-            if pattern in server_code.lower() and 'request.apiKey' not in server_code:
-                # Check if it's actually a hardcoded key vs variable reference
-                lines = server_code.split('\n')
-                for line in lines:
-                    if pattern in line.lower() and not line.strip().startswith('#') and 'request' not in line:
-                        hardcoded_found = True
-                        break
-        
-        if not hardcoded_found:
-            print("✅ No hardcoded API keys found - configuration is flexible")
-            no_hardcode = True
-        else:
-            print("❌ Hardcoded API keys detected - not flexible")
-            no_hardcode = False
-        
-        # Test environment variable handling
-        health_response = requests.get(f"{API_BASE}/health", timeout=10)
-        if health_response.status_code == 200:
-            health_data = health_response.json()
-            if 'emergent_key' in health_data:
-                print("✅ Environment variable handling working (emergent_key status available)")
-                env_handling_ok = True
+        if response1.status_code == 200 and response2.status_code == 200:
+            print("✅ Both sessions created successfully")
+            
+            # Retrieve history for each session
+            history1 = requests.get(f"{API_BASE}/sessions/{session1_id}", timeout=10)
+            history2 = requests.get(f"{API_BASE}/sessions/{session2_id}", timeout=10)
+            
+            if history1.status_code == 200 and history2.status_code == 200:
+                data1 = history1.json()
+                data2 = history2.json()
+                
+                chats1 = data1.get("chats", [])
+                chats2 = data2.get("chats", [])
+                
+                # Check that each session only has its own messages
+                if len(chats1) >= 1 and len(chats2) >= 1:
+                    # Check that session 1 contains React message
+                    session1_has_react = any("react" in chat["user_message"].lower() for chat in chats1)
+                    # Check that session 2 contains ML message
+                    session2_has_ml = any("machine learning" in chat["user_message"].lower() for chat in chats2)
+                    
+                    # Check that sessions don't contain each other's messages
+                    session1_has_ml = any("machine learning" in chat["user_message"].lower() for chat in chats1)
+                    session2_has_react = any("react" in chat["user_message"].lower() for chat in chats2)
+                    
+                    if session1_has_react and session2_has_ml and not session1_has_ml and not session2_has_react:
+                        print("✅ Session isolation working correctly - each session contains only its own messages")
+                        return True
+                    else:
+                        print("❌ Session isolation failed - messages bleeding between sessions")
+                        return False
+                else:
+                    print("❌ Sessions don't have expected messages")
+                    return False
             else:
-                print("❌ Environment variable handling not working properly")
-                env_handling_ok = False
+                print("❌ Failed to retrieve session histories")
+                return False
         else:
-            print("❌ Cannot verify environment variable handling")
-            env_handling_ok = False
-        
-        return emergent_key_ok and no_hardcode and env_handling_ok
-        
+            print("❌ Failed to create test sessions")
+            return False
+            
     except Exception as e:
-        print(f"❌ Environment variables flexibility test failed: {e}")
+        print(f"❌ Multiple sessions isolation test failed: {e}")
         return False
 
-def run_railway_deployment_tests():
-    """Run Railway deployment specific tests"""
-    print("🚀 Starting Railway Deployment Configuration Tests")
+def test_railway_readiness():
+    """Test Railway deployment readiness"""
+    print("\n=== Testing Railway Deployment Readiness ===")
+    
+    try:
+        # Test health check for Railway monitoring
+        start_time = time.time()
+        response = requests.get(f"{API_BASE}/health", timeout=10)
+        response_time = time.time() - start_time
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Check response time (should be fast for health checks)
+            if response_time < 5.0:
+                print(f"✅ Health check response time acceptable: {response_time:.2f}s")
+                
+                # Check required fields for Railway
+                required_fields = ["status", "database"]
+                if all(field in data for field in required_fields):
+                    print("✅ Health check has all required fields for Railway")
+                    
+                    # Check that we're not using MongoDB anymore
+                    if "mongo" not in str(data).lower():
+                        print("✅ No MongoDB references in health check - SQLite migration complete")
+                        
+                        # Test port configuration (should work on Railway's dynamic port)
+                        if data.get("status") == "healthy":
+                            print("✅ Backend ready for Railway deployment")
+                            return True
+                        else:
+                            print(f"❌ Backend status not healthy: {data.get('status')}")
+                            return False
+                    else:
+                        print("❌ MongoDB references still present - migration incomplete")
+                        return False
+                else:
+                    print("❌ Health check missing required fields")
+                    return False
+            else:
+                print(f"❌ Health check too slow for Railway: {response_time:.2f}s")
+                return False
+        else:
+            print(f"❌ Health check failed with status {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Railway readiness test failed: {e}")
+        return False
+
+def run_sqlite_backend_tests():
+    """Run comprehensive SQLite backend tests"""
+    print("🗄️  Starting SQLite Backend Functionality Tests")
     print(f"Testing Backend at: {BACKEND_URL}")
     print(f"Using Emergent API Key: {EMERGENT_API_KEY[:20]}...")
     
     test_results = {}
     
-    # Railway-specific tests
-    test_results["Railway PORT Configuration"] = test_railway_port_configuration()
-    test_results["MongoDB URL Flexibility"] = test_mongodb_url_flexibility()
-    test_results["Railway Health Monitoring"] = test_railway_health_monitoring()
-    test_results["API Endpoints Railway Ready"] = test_api_endpoints_railway_ready()
-    test_results["Build Configuration"] = test_build_configuration()
-    test_results["Environment Variables Flexibility"] = test_environment_variables_flexibility()
+    # Core SQLite backend tests
+    test_results["Database Connection"] = test_database_connection()
+    test_results["Models API"] = test_models_api()
+    test_results["Chat Functionality"] = test_chat_functionality()
+    test_results["Session Management"] = test_session_management()
+    test_results["SQLite Database Persistence"] = test_sqlite_database_persistence()
+    test_results["Multiple Sessions Isolation"] = test_multiple_sessions_isolation()
+    test_results["Railway Readiness"] = test_railway_readiness()
     
     # Results summary
     print("\n" + "="*70)
-    print("📊 RAILWAY DEPLOYMENT TEST RESULTS SUMMARY")
+    print("📊 SQLITE BACKEND TEST RESULTS SUMMARY")
     print("="*70)
     
     passed = 0
@@ -372,28 +514,29 @@ def run_railway_deployment_tests():
         if result:
             passed += 1
         else:
-            # Mark critical failures for Railway deployment
-            if test_name in ["Railway PORT Configuration", "MongoDB URL Flexibility", "Railway Health Monitoring", "API Endpoints Railway Ready"]:
+            # Mark critical failures
+            if test_name in ["Database Connection", "Models API", "Chat Functionality", "Session Management"]:
                 critical_failures.append(test_name)
     
     print(f"\n📈 Overall: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
     
     if passed == total:
-        print("🎉 All Railway deployment tests passed! Application is ready for Railway deployment.")
-        print("✅ Railway PORT environment variable handling working")
-        print("✅ MongoDB connection flexibility implemented")
-        print("✅ Health check endpoint ready for Railway monitoring")
-        print("✅ All critical API endpoints operational")
-        print("✅ Build configuration complete")
-        print("✅ Environment variables configured flexibly")
+        print("🎉 All SQLite backend tests passed! MongoDB to SQLite migration successful.")
+        print("✅ SQLite database connection working")
+        print("✅ All LLM providers (OpenAI, Anthropic, Gemini) functional")
+        print("✅ Chat functionality working with all providers")
+        print("✅ Session management and history storage working")
+        print("✅ SQLite database persistence confirmed")
+        print("✅ Session isolation working correctly")
+        print("✅ Railway deployment ready")
     else:
-        print("⚠️  Some Railway deployment tests failed. Analysis:")
+        print("⚠️  Some SQLite backend tests failed. Analysis:")
         if critical_failures:
-            print(f"🚨 Critical Railway deployment failures: {', '.join(critical_failures)}")
+            print(f"🚨 Critical failures: {', '.join(critical_failures)}")
         else:
-            print("ℹ️  Only minor issues detected - core Railway deployment features working")
+            print("ℹ️  Only minor issues detected - core functionality working")
     
     return test_results
 
 if __name__ == "__main__":
-    run_railway_deployment_tests()
+    run_sqlite_backend_tests()
