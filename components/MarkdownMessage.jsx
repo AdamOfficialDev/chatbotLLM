@@ -196,8 +196,8 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
       <em className="italic text-gray-800 dark:text-gray-200">{children}</em>
     ),
     table: ({ children }) => (
-      <div className="overflow-x-auto my-3">
-        <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg">
+      <div className="overflow-x-auto my-3 -mx-2 sm:mx-0">
+        <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg text-sm">
           {children}
         </table>
       </div>
