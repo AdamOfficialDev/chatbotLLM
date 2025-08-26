@@ -23,6 +23,7 @@ export default function ChatbotApp() {
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [availableModels, setAvailableModels] = useState(AVAILABLE_MODELS);
+  const [sessionId, setSessionId] = useState(null); // Add session management
   const messagesEndRef = useRef(null);
 
   // Update model when provider changes and fetch available models
