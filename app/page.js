@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Bot, User, Send, Settings, MessageSquare, Plus, Menu, Moon, Sun, RotateCcw } from 'lucide-react';
 import { AVAILABLE_MODELS } from '@/lib/llm-service.ts';
+import MarkdownMessage from '@/components/MarkdownMessage';
 
 export default function ChatbotApp() {
   const [provider, setProvider] = useState('openai');
