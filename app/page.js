@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,6 +11,48 @@ import { Separator } from '@/components/ui/separator';
 import { Bot, User, Send, Settings, MessageSquare, Plus, Menu, Moon, Sun, RotateCcw } from 'lucide-react';
 import { AVAILABLE_MODELS } from '@/lib/llm-service.ts';
 import MarkdownMessage from '@/components/MarkdownMessage';
+import { memo } from 'react';
+
+// Memoized Message Component for better performance
+const MessageItem = memo(({ message, index, darkMode }) => {
+  return (
+    <div
+      className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+    >
+      {message.role === 'assistant' && (
+        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+          <Bot className="h-5 w-5 text-white" />
+        </div>
+      )}
+      
+      <div
+        className={`max-w-[70%] p-4 rounded-2xl ${
+          message.role === 'user'
+            ? 'bg-blue-600 text-white rounded-br-md'
+            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md'
+        }`}
+      >
+        {message.role === 'user' ? (
+          <div className="prose prose-sm max-w-none">
+            <p className="whitespace-pre-wrap m-0 leading-relaxed text-white">
+              {message.content}
+            </p>
+          </div>
+        ) : (
+          <MarkdownMessage content={message.content} darkMode={darkMode} />
+        )}
+      </div>
+      
+      {message.role === 'user' && (
+        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+          <User className="h-5 w-5 text-white" />
+        </div>
+      )}
+    </div>
+  );
+});
+
+MessageItem.displayName = 'MessageItem';
 
 export default function ChatbotApp() {
   const [provider, setProvider] = useState('openai');
