@@ -2,10 +2,14 @@
 FROM node:18-alpine
 
 # Install Python for backend
-RUN apk add --no-cache python3 py3-pip curl
+RUN apk add --no-cache python3 py3-pip py3-venv curl
 
 # Set working directory
 WORKDIR /app
+
+# Create and activate virtual environment for Python
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy package files (handle missing yarn.lock gracefully)
 COPY package*.json ./
@@ -18,8 +22,8 @@ RUN yarn install --frozen-lockfile --network-timeout 100000 || \
 # Copy backend requirements first for better caching
 COPY backend/requirements.txt ./backend/requirements.txt
 
-# Install Python dependencies with retry logic
-RUN pip3 install --no-cache-dir --timeout 100 --retries 3 --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ -r backend/requirements.txt
+# Install Python dependencies with retry logic using virtual environment
+RUN pip install --no-cache-dir --timeout 100 --retries 3 --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ -r backend/requirements.txt
 
 # Copy all source files
 COPY . .
