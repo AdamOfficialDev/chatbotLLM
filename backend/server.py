@@ -223,7 +223,7 @@ async def chat_with_ai(request: ChatRequest):
         cursor.execute("""
             INSERT INTO chats (id, session_id, user_message, ai_response, model, provider, timestamp)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (chat_id, request.session_id, request.message, response.content, request.model, request.provider, datetime.utcnow()))
+        """, (chat_id, request.session_id, request.message, response, request.model, request.provider, datetime.utcnow()))
         
         # Update or create session
         cursor.execute("""
