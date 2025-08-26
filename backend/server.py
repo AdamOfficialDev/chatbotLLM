@@ -14,8 +14,7 @@ import asyncio
 load_dotenv()
 
 # Import emergentintegrations
-from emergentintegrations import LlmChat
-from emergentintegrations.llm.chat import UserMessage
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 app = FastAPI(title="AI Chatbot API", version="1.0.0")
 
