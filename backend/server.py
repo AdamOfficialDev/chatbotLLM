@@ -130,11 +130,11 @@ async def chat(request: ChatRequest):
         # Use existing session ID or generate new one
         session_id = request.session_id or str(uuid.uuid4())
         
-        # Create LLM chat instance
+        # Create LLM chat instance with better configuration
         chat = LlmChat(
             api_key=request.apiKey,
             session_id=session_id,
-            system_message="You are a helpful AI assistant. Provide clear, accurate, and comprehensive responses. Always complete your responses fully without cutting off mid-sentence."
+            system_message="You are a helpful AI assistant. Provide clear, accurate, and comprehensive responses. Always complete your responses fully without cutting off mid-sentence. Use markdown formatting when appropriate for better readability."
         )
         
         # Configure the model with max tokens
