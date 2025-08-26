@@ -88,10 +88,18 @@ export default function ChatbotApp() {
     fetchModels();
   }, [provider]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change - optimized with debouncing
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Debounce scroll to bottom to prevent excessive scrolling
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [messages.length, scrollToBottom]); // Only trigger on message count change
 
   // Load API key and chat data from localStorage
   useEffect(() => {
