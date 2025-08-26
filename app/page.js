@@ -410,41 +410,14 @@ export default function ChatbotApp() {
                 </div>
               ) : (
                 <div className="space-y-6 pb-4">
+                  {/* Use memoized MessageItem components for better performance */}
                   {messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {message.role === 'assistant' && (
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <Bot className="h-5 w-5 text-white" />
-                        </div>
-                      )}
-                      
-                      <div
-                        className={`max-w-[70%] p-4 rounded-2xl ${
-                          message.role === 'user'
-                            ? 'bg-blue-600 text-white rounded-br-md'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md'
-                        }`}
-                      >
-                        {message.role === 'user' ? (
-                          <div className="prose prose-sm max-w-none">
-                            <p className="whitespace-pre-wrap m-0 leading-relaxed text-white">
-                              {message.content}
-                            </p>
-                          </div>
-                        ) : (
-                          <MarkdownMessage content={message.content} darkMode={darkMode} />
-                        )}
-                      </div>
-                      
-                      {message.role === 'user' && (
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-white" />
-                        </div>
-                      )}
-                    </div>
+                    <MessageItem 
+                      key={`${message.timestamp || index}-${index}`} 
+                      message={message} 
+                      index={index} 
+                      darkMode={darkMode} 
+                    />
                   ))}
 
                   {loading && (
