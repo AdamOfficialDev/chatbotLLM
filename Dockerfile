@@ -72,13 +72,27 @@ COPY components.json ./
 
 # Create start script
 RUN echo '#!/bin/bash\n\
+# Get PORT from environment (Railway provides this)\n\
+export PORT=${PORT:-3000}\n\
+echo "Starting on PORT: $PORT"\n\
+\n\
 # Start backend in background\n\
 cd /app && python backend/server.py &\n\
+BACKEND_PID=$!\n\
 \n\
-# Wait a moment for backend to start\n\
-sleep 3\n\
+# Wait for backend to start\n\
+echo "Waiting for backend..."\n\
+sleep 5\n\
 \n\
-# Start frontend\n\
+# Check if backend started\n\
+if kill -0 $BACKEND_PID 2>/dev/null; then\n\
+    echo "Backend running (PID: $BACKEND_PID)"\n\
+else\n\
+    echo "Backend failed to start"\n\
+    exit 1\n\
+fi\n\
+\n\
+# Start frontend on Railway PORT\n\
 cd /app && npm start -- --hostname 0.0.0.0 --port $PORT\n\
 ' > start.sh && chmod +x start.sh
 
