@@ -27,8 +27,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB connection
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/chatbot_db")
+# MongoDB connection - Railway compatible
+MONGO_URL = os.getenv("MONGO_URL") or os.getenv("MONGODB_URL") or "mongodb://localhost:27017/chatbot_db"
 client = MongoClient(MONGO_URL)
 db = client.chatbot_db
 chats_collection = db.chats
