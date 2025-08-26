@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend API Testing for AI Chatbot
-Tests all backend endpoints with various LLM models and scenarios
+Railway Deployment Configuration and MongoDB Integration Testing
+Tests Railway-specific features and MongoDB flexibility for AI Chatbot
 """
 
 import requests
 import json
 import os
 import time
+import subprocess
 from typing import Dict, Any, List
 
 # Backend URL - using production URL from environment
