@@ -177,7 +177,7 @@ async def chat_with_ai(request: ChatRequest):
         ).with_model(request.provider, request.model)
 
         # Send to LLM
-        user_message = UserMessage(content=request.message)
+        user_message = UserMessage(text=request.message)
         response = await llm_chat.send_message(user_message)
         
         if not response:
