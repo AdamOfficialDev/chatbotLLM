@@ -1,39 +1,49 @@
-# Simple Railway Dockerfile - Override system packages restriction
-FROM node:18-slim
+# Simple Railway Dockerfile - No complex venv setup
+FROM node:18-alpine
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Install Python and required packages
+RUN apk add --no-cache python3 py3-pip curl
 
 # Set working directory
 WORKDIR /app
 
-# Copy and install Node.js dependencies
-COPY package.json ./
-RUN npm install --only=production
+# Copy package files
+COPY package*.json ./
+COPY yarn.loc* ./
 
-# Copy and install Python dependencies (override system restriction)
-COPY backend/requirements.txt ./backend/
-RUN pip3 install --break-system-packages --no-cache-dir -r backend/requirements.txt
+# Install Node.js dependencies
+RUN npm install
 
-# Copy source code
+# Copy backend requirements and install Python deps (with break-system-packages)
+COPY backend/requirements.txt ./backend/requirements.txt
+RUN pip3 install --break-system-packages --no-cache-dir --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ -r backend/requirements.txt
+
+# Copy all source files
 COPY . .
 
-# Build the application
+# Build Next.js application
 RUN npm run build
 
 # Create startup script
-RUN echo '#!/bin/bash\n\
+RUN echo '#!/bin/sh\n\
 export PORT=${PORT:-3000}\n\
-echo "Railway Simple Deployment - PORT: $PORT"\n\
-python3 backend/server.py &\n\
+echo "=== Railway Simple Deployment ==="\n\
+echo "PORT: $PORT"\n\
+echo "Starting backend on port 8001..."\n\
+cd /app && python3 backend/server.py &\n\
+BACKEND_PID=$!\n\
+echo "Backend PID: $BACKEND_PID"\n\
 sleep 8\n\
-npm start -- --port $PORT --hostname 0.0.0.0\n\
+echo "Starting frontend on port $PORT..."\n\
+cd /app && npm start -- --hostname 0.0.0.0 --port $PORT\n\
 ' > start.sh && chmod +x start.sh
 
+# Expose port
 EXPOSE $PORT
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8001/api/health || exit 1
+
+# Start application
 CMD ["./start.sh"]
