@@ -4,9 +4,9 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 import os
 import uuid
+import sqlite3
+import json
 from dotenv import load_dotenv
-import pymongo
-from pymongo import MongoClient
 from datetime import datetime
 import asyncio
 
@@ -27,12 +27,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB connection - Railway compatible
-MONGO_URL = os.getenv("MONGO_URL") or os.getenv("MONGODB_URL") or "mongodb://localhost:27017/chatbot_db"
-client = MongoClient(MONGO_URL)
-db = client.chatbot_db
-chats_collection = db.chats
-sessions_collection = db.sessions
+# SQLite Database setup - Simple and no configuration needed!
+DB_PATH = os.path.join(os.path.dirname(__file__), "chatbot.db")
+
+def init_database():
+    """Initialize SQLite database with required tables"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Create chats table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS chats (
+            id TEXT PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            user_message TEXT NOT NULL,
+            ai_response TEXT NOT NULL,
+            model TEXT NOT NULL,
+            provider TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Create sessions table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sessions (
+            session_id TEXT PRIMARY KEY,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+# Initialize database on startup
+init_database()
 
 # Available models - comprehensive list from playbook
 AVAILABLE_MODELS = {
@@ -78,144 +107,169 @@ AVAILABLE_MODELS = {
         "gemini-2.5-flash",
         "gemini-2.5-pro",
         # Gemini 2.0 models
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        # Existing Gemini 1.5 models
+        "gemini-2.0-flash-exp",
+        "gemini-2.0-flash-thinking-exp",
+        # Legacy Gemini models
         "gemini-1.5-flash",
         "gemini-1.5-pro",
-        # Legacy models
         "gemini-pro"
     ]
 }
 
-class ChatMessage(BaseModel):
-    role: str
-    content: str
-
+# Request models
 class ChatRequest(BaseModel):
-    messages: List[ChatMessage]
-    provider: str = "openai"
-    model: str = "gpt-4o-mini"
-    apiKey: str
-    session_id: str = None  # Optional session ID for context
-
-class ChatResponse(BaseModel):
-    response: str
+    message: str
     session_id: str
+    model: str
+    provider: str
+    apiKey: str = None  # Optional, uses Emergent Universal Key if not provided
 
-class ModelsResponse(BaseModel):
-    models: Dict[str, List[str]]
+class HealthResponse(BaseModel):
+    status: str
+    database: str
+    emergent_key: str
 
-@app.get("/")
-async def root():
-    return {"message": "AI Chatbot API is running!"}
+@app.get("/api/health", response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint for Railway monitoring"""
+    try:
+        # Test database connection
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cursor.fetchall()
+        conn.close()
+        
+        db_status = "connected" if len(tables) >= 2 else "no_tables"
+        
+        # Check Emergent API key
+        emergent_key_status = "configured" if os.getenv("EMERGENT_LLM_KEY") else "not_configured"
+        
+        return HealthResponse(
+            status="healthy",
+            database=db_status,
+            emergent_key=emergent_key_status
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-@app.get("/api/models", response_model=ModelsResponse)
+@app.get("/api/models")
 async def get_models():
-    """Get all available models for each provider"""
-    return ModelsResponse(models=AVAILABLE_MODELS)
+    """Get available models for all providers"""
+    return AVAILABLE_MODELS
 
-@app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+@app.post("/api/chat")
+async def chat_with_ai(request: ChatRequest):
+    """Chat with AI using emergentintegrations"""
     try:
         # Validate provider and model
         if request.provider not in AVAILABLE_MODELS:
-            raise HTTPException(status_code=400, detail=f"Provider {request.provider} not supported")
+            raise HTTPException(status_code=400, detail="Invalid provider")
         
         if request.model not in AVAILABLE_MODELS[request.provider]:
-            # Use first available model if requested model not found
-            print(f"Model {request.model} not found for {request.provider}. Using default.")
-            request.model = AVAILABLE_MODELS[request.provider][0]
+            raise HTTPException(status_code=400, detail="Invalid model for provider")
 
-        # Use existing session ID or generate new one
-        session_id = request.session_id or str(uuid.uuid4())
-        
-        # Create LLM chat instance with better configuration
-        chat = LlmChat(
-            api_key=request.apiKey,
-            session_id=session_id,
-            system_message="You are a helpful AI assistant. Provide clear, accurate, and comprehensive responses. Always complete your responses fully without cutting off mid-sentence. Use markdown formatting when appropriate for better readability."
+        # Create LLM chat client
+        llm_chat = LlmChat(
+            provider=request.provider,
+            model_name=request.model,
+            api_key=request.apiKey or os.getenv("EMERGENT_LLM_KEY")
         )
-        
-        # Configure the model
-        chat.with_model(request.provider, request.model)
-        
-        # Get the last user message for the current request
-        last_user_message = request.messages[-1]
-        if last_user_message.role != "user":
-            raise HTTPException(status_code=400, detail="Last message must be from user")
-        
-        # If we have conversation history and this is continuing a session,
-        # we need to send all messages in the correct format
-        if len(request.messages) > 1:
-            # Create a comprehensive conversation context by building the full conversation
-            conversation_text = ""
-            for i, msg in enumerate(request.messages[:-1]):
-                if msg.role == "user":
-                    conversation_text += f"User: {msg.content}\n\n"
-                elif msg.role == "assistant":
-                    conversation_text += f"Assistant: {msg.content}\n\n"
-            
-            # Add context to the current user message
-            current_message = f"Previous conversation:\n{conversation_text}Current question: {last_user_message.content}"
-            user_message = UserMessage(text=current_message)
-        else:
-            user_message = UserMessage(text=last_user_message.content)
-        
-        # Send message and get response
-        response = await chat.send_message(user_message)
-        
-        # Store conversation in database
-        chat_record = {
-            "_id": str(uuid.uuid4()),
-            "session_id": session_id,
-            "provider": request.provider,
-            "model": request.model,
-            "messages": [msg.dict() for msg in request.messages],
-            "response": response,
-            "timestamp": datetime.utcnow(),
-            "api_key_used": "emergent_universal" if request.apiKey.startswith("sk-emergent") else "custom"
-        }
-        
-        chats_collection.insert_one(chat_record)
-        
-        return ChatResponse(response=response, session_id=session_id)
-        
-    except Exception as e:
-        print(f"Error in chat endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@app.get("/api/sessions/{session_id}")
-async def get_session(session_id: str):
-    """Get chat history for a session"""
-    try:
-        chats = list(chats_collection.find({"session_id": session_id}))
-        for chat in chats:
-            chat["_id"] = str(chat["_id"])
-        return {"session_id": session_id, "chats": chats}
+        # Get conversation history for context
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT user_message, ai_response 
+            FROM chats 
+            WHERE session_id = ? 
+            ORDER BY timestamp ASC 
+            LIMIT 10
+        """, (request.session_id,))
+        
+        history = cursor.fetchall()
+        conn.close()
+
+        # Build messages with conversation context
+        messages = []
+        
+        # Add system message for better AI responses
+        system_message = """You are a helpful AI assistant. Please provide complete, well-structured responses. 
+        Use markdown formatting when appropriate for better readability. 
+        Be comprehensive in your answers and maintain context throughout the conversation."""
+        messages.append({"role": "system", "content": system_message})
+        
+        # Add conversation history for context
+        for user_msg, ai_resp in history:
+            messages.append({"role": "user", "content": user_msg})
+            messages.append({"role": "assistant", "content": ai_resp})
+        
+        # Add current user message
+        messages.append({"role": "user", "content": request.message})
+
+        # Send to LLM
+        user_message = UserMessage(content=request.message, context=messages[:-1])  # Exclude current message from context
+        response = await llm_chat.send_message(user_message)
+        
+        if not response or not hasattr(response, 'content'):
+            raise HTTPException(status_code=500, detail="Invalid response from AI")
+
+        # Store chat in database
+        chat_id = str(uuid.uuid4())
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Insert chat record
+        cursor.execute("""
+            INSERT INTO chats (id, session_id, user_message, ai_response, model, provider, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (chat_id, request.session_id, request.message, response.content, request.model, request.provider, datetime.utcnow()))
+        
+        # Update or create session
+        cursor.execute("""
+            INSERT OR REPLACE INTO sessions (session_id, updated_at)
+            VALUES (?, ?)
+        """, (request.session_id, datetime.utcnow()))
+        
+        conn.commit()
+        conn.close()
+
+        return {"response": response.content}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/health")
-async def health_check():
-    """Health check endpoint"""
+@app.get("/api/sessions/{session_id}")
+async def get_session_history(session_id: str):
+    """Get chat history for a session"""
     try:
-        # Test database connection
-        client.admin.command('ping')
-        return {
-            "status": "healthy",
-            "database": "connected",
-            "emergent_key": "configured" if os.getenv("EMERGENT_LLM_KEY") else "not_configured"
-        }
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, user_message, ai_response, model, provider, timestamp
+            FROM chats 
+            WHERE session_id = ? 
+            ORDER BY timestamp ASC
+        """, (session_id,))
+        
+        chats = []
+        for row in cursor.fetchall():
+            chats.append({
+                "id": row[0],
+                "user_message": row[1],
+                "ai_response": row[2], 
+                "model": row[3],
+                "provider": row[4],
+                "timestamp": row[5]
+            })
+        
+        conn.close()
+        return {"chats": chats}
+        
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
-    # Backend should run on fixed port 8001 for Railway
-    # Frontend will use Railway's PORT environment variable  
-    port = 8001
+    port = int(os.getenv("PORT", 8001))
     uvicorn.run(app, host="0.0.0.0", port=port)
