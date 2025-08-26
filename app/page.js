@@ -23,7 +23,22 @@ export default function ChatbotApp() {
 
   // Update model when provider changes
   useEffect(() => {
-    setModel(AVAILABLE_MODELS[provider][0]);
+    // Fetch available models from backend
+    const fetchModels = async () => {
+      try {
+        const response = await fetch('/api/models');
+        const data = await response.json();
+        if (data.models && data.models[provider]) {
+          setModel(data.models[provider][0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+        // Fallback to static models
+        setModel(AVAILABLE_MODELS[provider][0]);
+      }
+    };
+    
+    fetchModels();
   }, [provider]);
 
   // Scroll to bottom when messages change
