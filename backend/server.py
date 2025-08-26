@@ -140,25 +140,28 @@ async def chat(request: ChatRequest):
         # Configure the model with max tokens
         chat.with_model(request.provider, request.model)
         
-        # Send all messages for context, not just the last one
-        all_messages = []
-        for msg in request.messages:
+        # Send all messages for context to the chat instance
+        # Convert messages to the appropriate format for emergentintegrations
+        conversation_messages = []
+        for msg in request.messages[:-1]:  # All except the last message
             if msg.role == "user":
-                all_messages.append(UserMessage(text=msg.content))
-            # For assistant messages, we can add them as context if needed
+                conversation_messages.append({"role": "user", "content": msg.content})
+            elif msg.role == "assistant":
+                conversation_messages.append({"role": "assistant", "content": msg.content})
         
         # Get the last user message for the current request
-        last_user_message = None
-        for msg in reversed(request.messages):
-            if msg.role == "user":
-                last_user_message = UserMessage(text=msg.content)
-                break
+        last_user_message = request.messages[-1]
+        if last_user_message.role != "user":
+            raise HTTPException(status_code=400, detail="Last message must be from user")
         
-        if not last_user_message:
-            raise HTTPException(status_code=400, detail="No user message found")
+        user_message = UserMessage(text=last_user_message.content)
         
-        # Send message with full context and get response
-        response = await chat.send_message(last_user_message, context_messages=request.messages[:-1])
+        # Send message and get response - pass conversation context
+        if conversation_messages:
+            # Set conversation context before sending message
+            chat.conversation_history = conversation_messages
+        
+        response = await chat.send_message(user_message)
         
         # Store conversation in database
         chat_record = {
