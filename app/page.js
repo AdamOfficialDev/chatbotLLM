@@ -389,30 +389,32 @@ export default function ChatbotApp() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
+      <div className="flex-1 flex flex-col bg-white dark:bg-gray-800 min-w-0">
+        {/* Responsive Header */}
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-gray-600 dark:text-gray-400"
+              className="text-gray-600 dark:text-gray-400 flex-shrink-0 min-h-[44px] min-w-[44px]"
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-200">AI Chatbot</h1>
+            <div className="flex items-center gap-2 min-w-0">
+              <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+              <h1 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 truncate">
+                AI Chatbot
+              </h1>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setDarkMode(!darkMode)}
-              className="text-gray-600 dark:text-gray-400"
+              className="text-gray-600 dark:text-gray-400 min-h-[44px] min-w-[44px]"
             >
               {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
@@ -421,7 +423,7 @@ export default function ChatbotApp() {
                 variant="ghost"
                 size="icon"
                 onClick={clearChat}
-                className="text-gray-600 dark:text-gray-400"
+                className="text-gray-600 dark:text-gray-400 min-h-[44px] min-w-[44px]"
               >
                 <RotateCcw className="h-5 w-5" />
               </Button>
@@ -429,25 +431,25 @@ export default function ChatbotApp() {
           </div>
         </div>
 
-        {/* Chat Messages Area */}
+        {/* Chat Messages Area - Responsive */}
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <div className="max-w-4xl mx-auto p-4">
+            <div className="max-w-4xl mx-auto p-3 sm:p-4 lg:p-6">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                    <Bot className="h-8 w-8 text-white" />
+                <div className="flex flex-col items-center justify-center h-full text-center py-10 sm:py-20">
+                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-4 sm:mb-6">
+                    <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2 px-4">
                     How can I help you today?
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-md px-4">
                     I'm powered by the latest AI models from OpenAI, Anthropic, and Google. 
                     Choose your preferred model and start chatting!
                   </p>
                 </div>
               ) : (
-                <div className="space-y-6 pb-4">
+                <div className="space-y-4 sm:space-y-6 pb-4">
                   {/* Use memoized MessageItem components for better performance */}
                   {messages.map((message, index) => (
                     <MessageItem 
@@ -459,11 +461,11 @@ export default function ChatbotApp() {
                   ))}
 
                   {loading && (
-                    <div className="flex gap-4 justify-start">
+                    <div className="flex gap-3 sm:gap-4 justify-start">
                       <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <Bot className="h-5 w-5 text-white" />
                       </div>
-                      <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl rounded-bl-md">
+                      <div className="bg-gray-100 dark:bg-gray-700 p-3 sm:p-4 rounded-2xl rounded-bl-md">
                         <div className="flex items-center gap-2">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
