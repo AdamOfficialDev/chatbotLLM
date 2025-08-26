@@ -63,7 +63,7 @@ export default function ChatbotApp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default closed on mobile
   const [availableModels, setAvailableModels] = useState(AVAILABLE_MODELS);
   const [sessionId, setSessionId] = useState(null); // Add session management
   const messagesEndRef = useRef(null);
