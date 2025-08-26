@@ -66,33 +66,33 @@ const MarkdownMessage = memo(({ content, darkMode = false }) => {
       if (!inline && match) {
         return (
           <div className="relative group my-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-            {/* Enhanced header with better styling */}
-            <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">
+            {/* Enhanced header with better styling and responsive design */}
+            <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750 px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-600">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-base sm:text-lg flex-shrink-0">
                   {getLanguageIcon(language)}
                 </span>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize">
+                <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize truncate">
                   {language || 'Code'}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full">
+                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full flex-shrink-0 hidden sm:inline">
                   {code.split('\n').length} lines
                 </span>
               </div>
               <button
                 onClick={() => copyToClipboard(code, codeIndex)}
-                className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg border border-gray-300 dark:border-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg border border-gray-300 dark:border-gray-600 transition-all duration-200 shadow-sm hover:shadow-md flex-shrink-0"
                 title="Copy code"
               >
                 {copiedCode === codeIndex ? (
                   <>
                     <Check className="h-3 w-3 text-green-600" />
-                    <span className="font-medium text-green-600">Copied!</span>
+                    <span className="font-medium text-green-600 hidden sm:inline">Copied!</span>
                   </>
                 ) : (
                   <>
                     <Copy className="h-3 w-3" />
-                    <span className="font-medium">Copy</span>
+                    <span className="font-medium hidden sm:inline">Copy</span>
                   </>
                 )}
               </button>
