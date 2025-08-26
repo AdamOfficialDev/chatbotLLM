@@ -297,7 +297,7 @@ export default function ChatbotApp() {
         border-r border-gray-200 dark:border-gray-700 
         overflow-hidden flex flex-col
       `}>
-        {(sidebarOpen || window.innerWidth >= 1024) && (
+        <div className={`${sidebarOpen ? 'block' : 'hidden'} lg:block h-full flex flex-col`}>
           <>
             {/* Sidebar Header */}
             <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
