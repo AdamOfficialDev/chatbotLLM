@@ -97,6 +97,7 @@ class ChatRequest(BaseModel):
     provider: str = "openai"
     model: str = "gpt-4o-mini"
     apiKey: str
+    session_id: str = None  # Optional session ID for context
 
 class ChatResponse(BaseModel):
     response: str
