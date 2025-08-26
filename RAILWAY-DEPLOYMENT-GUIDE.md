@@ -124,6 +124,7 @@ Your app will be ready when `/api/health` returns:
 ## Troubleshooting
 
 ### Build Fails:
+- **"Cannot find module 'autoprefixer'"**: Fixed by installing all dependencies (including devDependencies)
 - Check environment variables are set
 - Verify MongoDB connection string
 - Ensure Emergent API key is valid
