@@ -76,12 +76,19 @@ export default function ChatbotApp() {
         const data = await response.json();
         if (data.models && data.models[provider]) {
           setAvailableModels(data.models);
-          setModel(data.models[provider][0]);
+          // Only set default model if no saved model exists for this provider
+          const savedModel = localStorage.getItem('selected_model');
+          if (!savedModel || !data.models[provider].includes(savedModel)) {
+            setModel(data.models[provider][0]);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch models:', error);
         // Fallback to static models
-        setModel(AVAILABLE_MODELS[provider][0]);
+        const savedModel = localStorage.getItem('selected_model');
+        if (!savedModel || !AVAILABLE_MODELS[provider].includes(savedModel)) {
+          setModel(AVAILABLE_MODELS[provider][0]);
+        }
       }
     };
     
