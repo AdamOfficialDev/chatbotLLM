@@ -90,21 +90,33 @@ export default function ChatbotApp() {
     setError(null);
 
     try {
+      const requestBody = {
+        messages: newMessages,
+        provider,
+        model,
+        apiKey
+      };
+
+      // Include session_id if we have one for context continuity
+      if (sessionId) {
+        requestBody.session_id = sessionId;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: newMessages,
-          provider,
-          model,
-          apiKey
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to get response');
+      }
+
+      // Store session_id for context continuity
+      if (data.session_id && !sessionId) {
+        setSessionId(data.session_id);
       }
 
       const assistantMessage = { 
