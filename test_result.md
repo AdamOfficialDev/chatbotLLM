@@ -246,6 +246,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Chat Context & Response Completion Fix"
     - "Markdown Rendering Fix"
     - "Frontend Configuration Fix"
     - "Comprehensive LLM Model Integration"
