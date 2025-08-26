@@ -176,37 +176,6 @@ async def chat_with_ai(request: ChatRequest):
             system_message="You are a helpful AI assistant. Please provide complete, well-structured responses. Use markdown formatting when appropriate for better readability. Be comprehensive in your answers and maintain context throughout the conversation."
         ).with_model(request.provider, request.model)
 
-        # Get conversation history for context
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT user_message, ai_response 
-            FROM chats 
-            WHERE session_id = ? 
-            ORDER BY timestamp ASC 
-            LIMIT 10
-        """, (request.session_id,))
-        
-        history = cursor.fetchall()
-        conn.close()
-
-        # Build messages with conversation context
-        messages = []
-        
-        # Add system message for better AI responses
-        system_message = """You are a helpful AI assistant. Please provide complete, well-structured responses. 
-        Use markdown formatting when appropriate for better readability. 
-        Be comprehensive in your answers and maintain context throughout the conversation."""
-        messages.append({"role": "system", "content": system_message})
-        
-        # Add conversation history for context
-        for user_msg, ai_resp in history:
-            messages.append({"role": "user", "content": user_msg})
-            messages.append({"role": "assistant", "content": ai_resp})
-        
-        # Add current user message
-        messages.append({"role": "user", "content": request.message})
-
         # Send to LLM
         user_message = UserMessage(content=request.message)
         response = await llm_chat.send_message(user_message)
