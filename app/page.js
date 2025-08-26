@@ -289,11 +289,15 @@ export default function ChatbotApp() {
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md'
                         }`}
                       >
-                        <div className="prose prose-sm max-w-none">
-                          <p className="whitespace-pre-wrap m-0 leading-relaxed">
-                            {message.content}
-                          </p>
-                        </div>
+                        {message.role === 'user' ? (
+                          <div className="prose prose-sm max-w-none">
+                            <p className="whitespace-pre-wrap m-0 leading-relaxed text-white">
+                              {message.content}
+                            </p>
+                          </div>
+                        ) : (
+                          <MarkdownMessage content={message.content} darkMode={darkMode} />
+                        )}
                       </div>
                       
                       {message.role === 'user' && (
