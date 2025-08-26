@@ -1,71 +1,48 @@
 import { NextResponse } from 'next/server';
-import { llmService } from '../../../lib/llm-service.ts';
+
+const BACKEND_URL = 'http://localhost:8001';
 
 export async function GET(request, { params }) {
   const path = params.path ? params.path.join('/') : '';
   
-  if (path === 'chat') {
-    return NextResponse.json({ message: 'AI Chatbot API is ready for POST requests!' });
+  try {
+    // Forward GET requests to Python backend
+    const response = await fetch(`${BACKEND_URL}/api/${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
+  } catch (error) {
+    console.error('Backend proxy error (GET):', error);
+    return NextResponse.json({ error: 'Backend service unavailable' }, { status: 503 });
   }
-  
-  return NextResponse.json({ message: 'AI Chatbot API is running!', path });
 }
 
 export async function POST(request, { params }) {
   try {
     const path = params.path ? params.path.join('/') : '';
+    const body = await request.json();
     
-    // Handle chat endpoint
-    if (path === 'chat') {
-      const body = await request.json();
-      const { 
-        messages, 
-        provider = 'openai', 
-        model = 'gpt-4o-mini',
-        apiKey
-      } = body;
-      
-      if (!messages || !Array.isArray(messages) || messages.length === 0) {
-        return NextResponse.json(
-          { error: 'Messages array is required' },
-          { status: 400 }
-        );
-      }
-
-      if (!apiKey) {
-        return NextResponse.json(
-          { error: 'API key is required. Please enter your Emergent universal API key.' },
-          { status: 400 }
-        );
-      }
-      
-      const result = await llmService.sendMessage(
-        messages,
-        provider,
-        model,
-        apiKey
-      );
-      
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
-      
-      return NextResponse.json({ response: result.data });
-    }
+    // Forward POST requests to Python backend
+    const response = await fetch(`${BACKEND_URL}/api/${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
     
-    return NextResponse.json(
-      { error: 'Endpoint not found' },
-      { status: 404 }
-    );
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
     
   } catch (error) {
-    console.error('API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Backend proxy error (POST):', error);
+    return NextResponse.json({ 
+      error: 'Backend service unavailable',
+      details: error.message 
+    }, { status: 503 });
   }
 }
