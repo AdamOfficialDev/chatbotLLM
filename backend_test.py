@@ -12,7 +12,7 @@ import subprocess
 from typing import Dict, Any, List
 
 # Backend URL - using production URL from environment
-BACKEND_URL = "https://pip-install-fix.preview.emergentagent.com"
+BACKEND_URL = "https://python-node-app.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test API key from environment
