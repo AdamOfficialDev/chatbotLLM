@@ -138,7 +138,17 @@ backend:
         agent: "main"
         comment: "SYNTAX ERROR FIXED: Corrected corrupted MarkdownMessage.jsx file that had duplicate content and invalid 'use client' directive placement inside components object. Also fixed supervisor configuration and installed missing frontend dependencies. Frontend now running successfully."
 
-  - task: "Frontend Configuration Fix"
+  - task: "Performance Optimization & Models API Fix"
+    implemented: true
+    working: true
+    file: "/app/app/page.js, /app/components/MarkdownMessage.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "FIXED TWO CRITICAL ISSUES: (1) Models API Error - Installed missing emergentintegrations library, backend now serving models API correctly. (2) Chat Input Lagging - Implemented performance optimizations: memoized MessageItem components, throttled localStorage saves (1s delay), debounced scroll behavior, added timestamps to messages, optimized MarkdownMessage with useMemo for components object. These changes should significantly reduce lag when there are many chat messages."
     implemented: true
     working: true
     file: "/etc/supervisor/conf.d/supervisord.conf"
