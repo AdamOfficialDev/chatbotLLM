@@ -105,6 +105,30 @@
 user_problem_statement: "please fix untuk hasil respon dari ai nya ko tercetak untuk markdown nya, saya ingin untuk markdown nya terconvert dan untuk sebuah code masuk ke codeblock"
 
 backend:
+  - task: "Markdown Rendering Fix"
+    implemented: true
+    working: true
+    file: "/app/components/MarkdownMessage.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Created MarkdownMessage component with react-markdown, syntax highlighting, and proper styling. AI responses now render markdown properly with code blocks, headers, lists, tables, and other formatting."
+
+  - task: "Frontend Configuration Fix"
+    implemented: true
+    working: true
+    file: "/etc/supervisor/conf.d/supervisord.conf"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Fixed supervisor configuration to properly run Next.js frontend from /app directory instead of /app/frontend"
+
   - task: "Comprehensive LLM Model Integration"
     implemented: true
     working: true
