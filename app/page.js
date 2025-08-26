@@ -51,15 +51,72 @@ export default function ChatbotApp() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Load API key from localStorage
+  // Load API key and chat data from localStorage
   useEffect(() => {
-    const savedKey = localStorage.getItem('emergent_api_key');
-    const savedDarkMode = localStorage.getItem('dark_mode') === 'true';
-    if (savedKey) {
-      setApiKey(savedKey);
+    try {
+      const savedKey = localStorage.getItem('emergent_api_key');
+      const savedDarkMode = localStorage.getItem('dark_mode') === 'true';
+      const savedMessages = localStorage.getItem('chat_messages');
+      const savedSessionId = localStorage.getItem('current_session_id');
+      const savedProvider = localStorage.getItem('selected_provider');
+      const savedModel = localStorage.getItem('selected_model');
+
+      if (savedKey) {
+        setApiKey(savedKey);
+      }
+      if (savedMessages) {
+        const parsedMessages = JSON.parse(savedMessages);
+        setMessages(parsedMessages);
+      }
+      if (savedSessionId) {
+        setSessionId(savedSessionId);
+      }
+      if (savedProvider && ['openai', 'anthropic', 'gemini'].includes(savedProvider)) {
+        setProvider(savedProvider);
+      }
+      if (savedModel) {
+        setModel(savedModel);
+      }
+      
+      setDarkMode(savedDarkMode);
+    } catch (error) {
+      console.error('Error loading data from localStorage:', error);
+      // Clear corrupted data
+      localStorage.removeItem('chat_messages');
+      localStorage.removeItem('current_session_id');
     }
-    setDarkMode(savedDarkMode);
   }, []);
+
+  // Save chat messages to localStorage
+  useEffect(() => {
+    try {
+      if (messages.length > 0) {
+        localStorage.setItem('chat_messages', JSON.stringify(messages));
+      }
+    } catch (error) {
+      console.error('Error saving messages to localStorage:', error);
+    }
+  }, [messages]);
+
+  // Save session ID to localStorage
+  useEffect(() => {
+    try {
+      if (sessionId) {
+        localStorage.setItem('current_session_id', sessionId);
+      }
+    } catch (error) {
+      console.error('Error saving session ID:', error);
+    }
+  }, [sessionId]);
+
+  // Save provider and model preferences
+  useEffect(() => {
+    localStorage.setItem('selected_provider', provider);
+  }, [provider]);
+
+  useEffect(() => {
+    localStorage.setItem('selected_model', model);
+  }, [model]);
 
   // Save API key to localStorage
   useEffect(() => {
