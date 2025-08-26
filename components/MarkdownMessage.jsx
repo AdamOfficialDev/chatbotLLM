@@ -4,29 +4,6 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
-import { Copy, Check } from 'lucide-react';
-import { useState } from 'react';
-
-export default function MarkdownMessage({ content, darkMode = false }) {
-  const [copiedCode, setCopiedCode] = useState(null);
-
-  const copyToClipboard = async (code, index) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedCode(index);
-      setTimeout(() => setCopiedCode(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const components = {
-'use client';
-
-import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import remarkGfm from 'remark-gfm';
 import { Copy, Check, FileText, Terminal } from 'lucide-react';
 import { useState } from 'react';
 
