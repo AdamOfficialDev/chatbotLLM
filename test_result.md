@@ -105,6 +105,18 @@
 user_problem_statement: "please fix untuk hasil respon dari ai nya ko tercetak untuk markdown nya, saya ingin untuk markdown nya terconvert dan untuk sebuah code masuk ke codeblock"
 
 backend:
+  - task: "Chat Context & Response Completion Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/app/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Fixed two critical issues: (1) AI responses being cut off - improved system message and context handling. (2) Chat context not preserved - implemented session_id management in frontend and conversation history context in backend. Now conversations maintain context across multiple messages."
+
   - task: "Markdown Rendering Fix"
     implemented: true
     working: true
