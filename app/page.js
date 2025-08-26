@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Bot, User, Send, Settings, MessageSquare } from 'lucide-react';
+import { Bot, User, Send, Settings, MessageSquare, Plus, Menu, Moon, Sun, RotateCcw } from 'lucide-react';
 import { AVAILABLE_MODELS } from '@/lib/llm-service.ts';
 
 export default function ChatbotApp() {
@@ -19,16 +19,19 @@ export default function ChatbotApp() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [availableModels, setAvailableModels] = useState(AVAILABLE_MODELS);
   const messagesEndRef = useRef(null);
 
-  // Update model when provider changes
+  // Update model when provider changes and fetch available models
   useEffect(() => {
-    // Fetch available models from backend
     const fetchModels = async () => {
       try {
         const response = await fetch('/api/models');
         const data = await response.json();
         if (data.models && data.models[provider]) {
+          setAvailableModels(data.models);
           setModel(data.models[provider][0]);
         }
       } catch (error) {
@@ -49,9 +52,11 @@ export default function ChatbotApp() {
   // Load API key from localStorage
   useEffect(() => {
     const savedKey = localStorage.getItem('emergent_api_key');
+    const savedDarkMode = localStorage.getItem('dark_mode') === 'true';
     if (savedKey) {
       setApiKey(savedKey);
     }
+    setDarkMode(savedDarkMode);
   }, []);
 
   // Save API key to localStorage
@@ -60,6 +65,16 @@ export default function ChatbotApp() {
       localStorage.setItem('emergent_api_key', apiKey);
     }
   }, [apiKey]);
+
+  // Save dark mode preference
+  useEffect(() => {
+    localStorage.setItem('dark_mode', darkMode.toString());
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,39 +124,33 @@ export default function ChatbotApp() {
     setError(null);
   };
 
+  const newChat = () => {
+    clearChat();
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-4 max-w-4xl">
-        {/* Header */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-6 w-6" />
-              AI Chatbot
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* API Key Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Emergent Universal API Key</label>
-              <Input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your Emergent API key..."
-                className="font-mono"
-              />
-              <p className="text-xs text-muted-foreground">
-                Get your universal key from your profile section: Profile → Universal Key
-              </p>
+    <div className={`flex h-screen ${darkMode ? 'dark' : ''}`}>
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col`}>
+        {sidebarOpen && (
+          <>
+            {/* Sidebar Header */}
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <Button 
+                onClick={newChat}
+                className="w-full justify-start gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <Plus className="h-4 w-4" />
+                New Chat
+              </Button>
             </div>
 
-            {/* Model Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Provider</label>
+            {/* Model Configuration */}
+            <div className="p-4 space-y-4 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Provider</label>
                 <Select value={provider} onValueChange={setProvider}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -152,87 +161,161 @@ export default function ChatbotApp() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Model</label>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Model</label>
                 <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {AVAILABLE_MODELS[provider].map(m => (
+                    {availableModels[provider]?.map(m => (
                       <SelectItem key={m} value={m}>{m}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">API Key</label>
+                <Input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Enter your Emergent API key..."
+                  className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 font-mono text-xs"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Get your universal key from Profile → Universal Key
+                </p>
+              </div>
+
+              {/* Current Configuration */}
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="text-xs">{provider}</Badge>
+                <Badge variant="outline" className="text-xs">{model}</Badge>
+                {apiKey && <Badge variant="default" className="text-xs">API Key Set</Badge>}
+              </div>
             </div>
 
-            {/* Current Configuration */}
+            {/* Chat History Placeholder */}
+            <div className="flex-1 p-4">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Recent Chats</h3>
+              <div className="space-y-2">
+                <div className="text-xs text-gray-500 dark:text-gray-400 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+                  Previous conversations will appear here
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="text-gray-600 dark:text-gray-400"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">{provider}</Badge>
-              <Badge variant="outline">{model}</Badge>
-              {apiKey && <Badge variant="default">API Key Set</Badge>}
+              <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-200">AI Chatbot</h1>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDarkMode(!darkMode)}
+              className="text-gray-600 dark:text-gray-400"
+            >
+              {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={clearChat}
+                className="text-gray-600 dark:text-gray-400"
+              >
+                <RotateCcw className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+        </div>
 
-        {/* Chat Area */}
-        <Card className="mb-4">
-          <CardContent className="p-0">
-            <ScrollArea className="h-96 p-4">
+        {/* Chat Messages Area */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="max-w-4xl mx-auto p-4">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                  <Bot className="h-12 w-12 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Start a conversation</h3>
-                  <p className="text-sm">
-                    Enter your Emergent API key above and send a message to begin chatting with AI.
+                <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                    <Bot className="h-8 w-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                    How can I help you today?
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                    I'm powered by the latest AI models from OpenAI, Anthropic, and Google. 
+                    Choose your preferred model and start chatting!
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6 pb-4">
                   {messages.map((message, index) => (
                     <div
                       key={index}
-                      className={`flex items-start gap-3 ${
-                        message.role === 'user' ? 'flex-row-reverse' : ''
-                      }`}
+                      className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                        message.role === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-secondary text-secondary-foreground'
-                      }`}>
-                        {message.role === 'user' ? (
-                          <User className="h-4 w-4" />
-                        ) : (
-                          <Bot className="h-4 w-4" />
-                        )}
+                      {message.role === 'assistant' && (
+                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <Bot className="h-5 w-5 text-white" />
+                        </div>
+                      )}
+                      
+                      <div
+                        className={`max-w-[70%] p-4 rounded-2xl ${
+                          message.role === 'user'
+                            ? 'bg-blue-600 text-white rounded-br-md'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md'
+                        }`}
+                      >
+                        <div className="prose prose-sm max-w-none">
+                          <p className="whitespace-pre-wrap m-0 leading-relaxed">
+                            {message.content}
+                          </p>
+                        </div>
                       </div>
-                      <div className={`max-w-[80%] p-3 rounded-lg ${
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground ml-auto'
-                          : 'bg-muted'
-                      }`}>
-                        <p className="text-sm whitespace-pre-wrap">
-                          {message.content}
-                        </p>
-                      </div>
+                      
+                      {message.role === 'user' && (
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-white" />
+                        </div>
+                      )}
                     </div>
                   ))}
 
                   {loading && (
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                        <Bot className="h-4 w-4" />
+                    <div className="flex gap-4 justify-start">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <Bot className="h-5 w-5 text-white" />
                       </div>
-                      <div className="bg-muted p-3 rounded-lg">
+                      <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl rounded-bl-md">
                         <div className="flex items-center gap-2">
                           <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                           </div>
-                          <span className="text-sm text-muted-foreground">Thinking...</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Thinking...</span>
                         </div>
                       </div>
                     </div>
@@ -241,53 +324,54 @@ export default function ChatbotApp() {
                   <div ref={messagesEndRef} />
                 </div>
               )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            </div>
+          </ScrollArea>
+        </div>
 
         {/* Error Display */}
         {error && (
-          <Card className="mb-4 border-destructive">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-destructive">
+          <div className="mx-4 mb-4">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
                 <span className="text-sm font-medium">Error:</span>
                 <span className="text-sm">{error}</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Input Area */}
-        <Card>
-          <CardContent className="p-4">
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={apiKey ? "Type your message..." : "Enter API key first..."}
-                disabled={loading || !apiKey}
-                className="flex-1"
-              />
+        <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="max-w-4xl mx-auto p-4">
+            <form onSubmit={handleSubmit} className="flex gap-3 items-end">
+              <div className="flex-1 relative">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={apiKey ? "Message AI..." : "Enter API key first..."}
+                  disabled={loading || !apiKey}
+                  className="min-h-[44px] pr-12 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+              </div>
               <Button 
                 type="submit" 
                 disabled={loading || !input.trim() || !apiKey}
-                size="icon"
+                className="h-11 w-11 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
                 <Send className="h-4 w-4" />
               </Button>
-              {messages.length > 0 && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={clearChat}
-                  disabled={loading}
-                >
-                  Clear
-                </Button>
-              )}
             </form>
-          </CardContent>
-        </Card>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+              AI can make mistakes. Consider checking important information.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
