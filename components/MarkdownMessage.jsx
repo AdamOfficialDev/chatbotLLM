@@ -5,9 +5,10 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import { Copy, Check, FileText, Terminal } from 'lucide-react';
-import { useState } from 'react';
+import { useState, memo, useMemo } from 'react';
 
-export default function MarkdownMessage({ content, darkMode = false }) {
+// Memoized MarkdownMessage component for better performance
+const MarkdownMessage = memo(({ content, darkMode = false }) => {
   const [copiedCode, setCopiedCode] = useState(null);
 
   const copyToClipboard = async (code, index) => {
@@ -20,8 +21,8 @@ export default function MarkdownMessage({ content, darkMode = false }) {
     }
   };
 
-  // Enhanced language detection and icon mapping
-  const getLanguageIcon = (language) => {
+  // Enhanced language detection and icon mapping - memoized
+  const getLanguageIcon = useMemo(() => (language) => {
     const iconMap = {
       'javascript': '🟨',
       'js': '🟨',
@@ -52,9 +53,10 @@ export default function MarkdownMessage({ content, darkMode = false }) {
       'dart': '🎯'
     };
     return iconMap[language?.toLowerCase()] || <FileText className="h-3 w-3" />;
-  };
+  }, []);
 
-  const components = {
+  // Memoized components object to prevent recreation on every render
+  const components = useMemo(() => ({
     code({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : '';
