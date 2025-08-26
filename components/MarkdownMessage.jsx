@@ -5,11 +5,23 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import { Copy, Check, FileText, Terminal } from 'lucide-react';
-import { useState, memo, useMemo } from 'react';
+import { useState, memo, useMemo, useEffect } from 'react';
 
 // Memoized MarkdownMessage component for better performance
 const MarkdownMessage = memo(({ content, darkMode = false }) => {
   const [copiedCode, setCopiedCode] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Handle responsive detection client-side only
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const copyToClipboard = async (code, index) => {
     try {
