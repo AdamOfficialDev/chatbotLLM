@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Saya ingin untuk semua LLm nya itu komplit ada semua model nya dari masing masing LLm apalagi untuk model terbaru dari masing masing LLm harus ada"
+user_problem_statement: "please fix untuk hasil respon dari ai nya ko tercetak untuk markdown nya, saya ingin untuk markdown nya terconvert dan untuk sebuah code masuk ke codeblock"
 
 backend:
   - task: "Comprehensive LLM Model Integration"
